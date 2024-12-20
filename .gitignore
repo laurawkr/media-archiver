@@ -1,0 +1,15 @@
+# Ignore data files
+data/
+*.parquet
+*.csv
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Virtual environments
+.env/
+venv/
+
+# OS files
+.DS_Store
