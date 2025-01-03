@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 # Set up logging
@@ -59,9 +60,11 @@ def download_archive_item(item_id, output_folder="data/internet_archive", thread
 def download_file(url, output_path):
     """
     Download a file from a given URL and save it to the specified path.
+    Logs progress every 30 seconds.
     """
     try:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        last_log_time = time.time()  # Initialize the last log time
         with requests.get(url, stream=True, timeout=30) as response:
             response.raise_for_status()
             total_size = int(response.headers.get('content-length', 0))
@@ -70,7 +73,10 @@ def download_file(url, output_path):
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
                     downloaded += len(chunk)
-                    logging.info(f"Downloading: {url} - {downloaded}/{total_size} bytes")
+                    current_time = time.time()
+                    if current_time - last_log_time >= 30:
+                        logging.info(f"Downloading: {url} - {downloaded}/{total_size} bytes")
+                        last_log_time = current_time  # Update the last log time
         logging.info(f"File saved: {output_path}")
     except requests.RequestException as e:
         logging.error(f"Failed to download {url}: {e}")
