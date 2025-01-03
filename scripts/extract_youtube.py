@@ -1,34 +1,67 @@
 import os
 import subprocess
+import json
+import re
 
-def download_youtube_video(video_url, output_folder="data/youtube"):
-    """
-    Download a YouTube video with its metadata using yt-dlp.
-    
-    Args:
-        video_url (str): URL of the YouTube video.
-        output_folder (str): Folder to save the video and metadata.
-    """
-    # Ensure the output folder exists
+def sanitize_filename(filename):
+    """Sanitize file names to ensure compatibility across file systems."""
+    return re.sub(r'[^\w\-_\. ]', '_', filename)
+
+def extract_youtube_metadata(video_url, output_folder="data/youtube"):
+    """Extract metadata, save it, and download the best video format."""
     os.makedirs(output_folder, exist_ok=True)
 
-    # Command to download video and metadata
-    command = [
-        "yt-dlp",
-        "--write-info-json",  # Save metadata as JSON
-        "--merge-output-format", "mp4",  # Ensure output is a single MP4 file
-        "--output", os.path.join(output_folder, "%(title)s.%(ext)s"),  # Save video with its title
-        video_url
-    ]
-
-    # Run the command
     try:
-        subprocess.run(command, check=True)
-        print(f"Video and metadata downloaded successfully for {video_url}")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to download video for {video_url}: {e}")
+        # Fetch metadata
+        command = ["yt-dlp", "--dump-json", video_url]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        raw_metadata = json.loads(result.stdout)
 
-# Example usage
+        # Refine metadata
+        refined_metadata = {
+            "id": raw_metadata["id"],
+            "title": raw_metadata["title"],
+            "duration": raw_metadata.get("duration"),
+            "uploader": raw_metadata.get("uploader"),
+            "upload_date": raw_metadata.get("upload_date"),
+            "thumbnail": raw_metadata.get("thumbnail"),
+            "best_format": {
+                "format_id": raw_metadata["formats"][-1]["format_id"],
+                "filesize": raw_metadata["formats"][-1].get("filesize"),
+                "ext": raw_metadata["formats"][-1]["ext"],
+                "resolution": raw_metadata["formats"][-1].get("resolution"),
+                "fps": raw_metadata["formats"][-1].get("fps"),
+            }
+        }
+
+        # Save refined metadata to a file
+        metadata_filename = os.path.join(
+            output_folder, f"{sanitize_filename(raw_metadata['id'])}_metadata.json"
+        )
+        with open(metadata_filename, "w") as metadata_file:
+            json.dump(refined_metadata, metadata_file, indent=4)
+
+        print(f"Refined metadata saved: {metadata_filename}")
+
+        # Download video
+        best_format_id = refined_metadata["best_format"]["format_id"]
+        video_filename = sanitize_filename(raw_metadata["title"]) + ".mp4"
+        video_path = os.path.join(output_folder, video_filename)
+
+        download_command = [
+            "yt-dlp",
+            "-f", best_format_id,
+            video_url,
+            "-o", video_path
+        ]
+        subprocess.run(download_command, check=True)
+        print(f"Video downloaded: {video_path}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.stderr}")
+    except KeyError as e:
+        print(f"Missing key in metadata: {e}")
+
 if __name__ == "__main__":
-    video_url = input("Enter a YouTube video URL: ")
-    download_youtube_video(video_url)
+    video_url = input("Enter a YouTube video URL: ").strip()
+    extract_youtube_metadata(video_url)

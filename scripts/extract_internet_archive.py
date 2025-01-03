@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import logging
+import re
 
 # Set up logging
 logging.basicConfig(
@@ -11,10 +12,8 @@ logging.basicConfig(
 )
 
 def sanitize_filename(name):
-    """
-    Sanitize file and folder names to ensure compatibility across file systems.
-    """
-    return "".join(c if c.isalnum() or c in " ._-()" else "_" for c in name)
+    """Sanitize file and folder names to ensure compatibility across file systems."""
+    return re.sub(r'[^\w\-_\. ()]', '_', name)
 
 def download_archive_item(item_id, output_folder="data/internet_archive"):
     """
@@ -31,33 +30,44 @@ def download_archive_item(item_id, output_folder="data/internet_archive"):
         response.raise_for_status()
         metadata = response.json()
 
-        # Save metadata
-        metadata_file = os.path.join(output_folder, f"{sanitize_filename(item_id)}.json")
+        # Refine metadata
+        refined_metadata = {
+            "id": metadata.get("metadata", {}).get("identifier"),
+            "title": metadata.get("metadata", {}).get("title"),
+            "description": metadata.get("metadata", {}).get("description"),
+            "creator": metadata.get("metadata", {}).get("creator"),
+            "files": [
+                {
+                    "name": file.get("name"),
+                    "size": file.get("size"),
+                    "format": file.get("format"),
+                    "original": f"https://archive.org/download/{item_id}/{file.get('name')}"
+                }
+                for file in metadata.get("files", []) if file.get("name").endswith(".mp4")
+            ]
+        }
+
+        # Save refined metadata to a file
+        metadata_file = os.path.join(output_folder, f"{sanitize_filename(item_id)}_metadata.json")
         with open(metadata_file, "w") as f:
-            json.dump(metadata, f, indent=4)
-        logging.info(f"Metadata saved for item: {item_id} at {metadata_file}")
+            json.dump(refined_metadata, f, indent=4)
+        logging.info(f"Refined metadata saved: {metadata_file}")
 
         # Download .mp4 files
-        for file in metadata.get("files", []):
-            name = file.get("name")
-            if name.endswith(".mp4"):
-                sanitized_name = sanitize_filename(name)
-                subdir = os.path.dirname(name)
-                target_folder = os.path.join(output_folder, subdir)
-                os.makedirs(target_folder, exist_ok=True)
+        for file_info in refined_metadata["files"]:
+            name = file_info["name"]
+            file_url = file_info["original"]
+            sanitized_name = sanitize_filename(name)
+            target_file = os.path.join(output_folder, sanitized_name)
 
-                file_url = f"https://archive.org/download/{item_id}/{name}"
-                output_file = os.path.join(target_folder, sanitized_name)
-                logging.info(f"Starting download: {file_url}")
-                download_file(file_url, output_file)
+            logging.info(f"Starting download for file: {file_url}")
+            download_file(file_url, target_file)
 
     except requests.RequestException as e:
         logging.error(f"Failed to fetch or process item {item_id}: {e}")
 
 def download_file(url, output_path):
-    """
-    Download a file from a given URL and save it to the specified path.
-    """
+    """Download a file from a given URL and save it to the specified path."""
     try:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with requests.get(url, stream=True, timeout=30) as response:
@@ -75,5 +85,5 @@ def download_file(url, output_path):
 
 # Example usage
 if __name__ == "__main__":
-    item_id = input("Enter the Internet Archive item ID: ")
+    item_id = input("Enter the Internet Archive item ID: ").strip()
     download_archive_item(item_id)
