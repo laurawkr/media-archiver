@@ -1,34 +1,53 @@
 import os
 import subprocess
+import json
 
-def download_youtube_video(video_url, output_folder="data/youtube"):
-    """
-    Download a YouTube video with its metadata using yt-dlp.
-    
-    Args:
-        video_url (str): URL of the YouTube video.
-        output_folder (str): Folder to save the video and metadata.
-    """
-    # Ensure the output folder exists
+def extract_youtube_metadata(video_url, output_folder="data/youtube"):
     os.makedirs(output_folder, exist_ok=True)
 
-    # Command to download video and metadata
+    # Use yt-dlp to fetch metadata
     command = [
         "yt-dlp",
-        "--write-info-json",  # Save metadata as JSON
-        "--merge-output-format", "mp4",  # Ensure output is a single MP4 file
-        "--output", os.path.join(output_folder, "%(title)s.%(ext)s"),  # Save video with its title
+        "--dump-json",  # Output metadata as JSON
+        "--skip-download",  # Only fetch metadata
         video_url
     ]
 
-    # Run the command
     try:
-        subprocess.run(command, check=True)
-        print(f"Video and metadata downloaded successfully for {video_url}")
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        raw_metadata = json.loads(result.stdout)
+
+        # Extract relevant metadata
+        refined_metadata = {
+            "id": raw_metadata["id"],
+            "title": raw_metadata["title"],
+            "duration": raw_metadata.get("duration"),
+            "uploader": raw_metadata.get("uploader"),
+            "upload_date": raw_metadata.get("upload_date"),
+            "thumbnail": raw_metadata.get("thumbnail"),
+            "formats": [
+                {
+                    "format_id": f["format_id"],
+                    "url": f["url"],
+                    "filesize": f.get("filesize") or f.get("filesize_approx"),
+                    "ext": f["ext"],
+                    "resolution": f.get("resolution"),
+                    "fps": f.get("fps")
+                }
+                for f in raw_metadata.get("formats", [])
+            ]
+        }
+
+        # Save metadata to JSON
+        output_file = os.path.join(output_folder, f"{refined_metadata['id']}.json")
+        with open(output_file, "w") as f:
+            json.dump(refined_metadata, f, indent=4)
+        print(f"Metadata saved: {output_file}")
+
     except subprocess.CalledProcessError as e:
-        print(f"Failed to download video for {video_url}: {e}")
+        print(f"Failed to fetch metadata for {video_url}: {e}")
 
 # Example usage
 if __name__ == "__main__":
     video_url = input("Enter a YouTube video URL: ")
-    download_youtube_video(video_url)
+    extract_youtube_metadata(video_url)
