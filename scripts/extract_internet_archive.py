@@ -18,7 +18,7 @@ def sanitize_filename(name):
     """
     return "".join(c if c.isalnum() or c in " ._-()" else "_" for c in name)
 
-def download_archive_item(item_id, output_folder="data/internet_archive", threads=4):
+def download_archive_item(item_id, output_folder="/Volumes/media-archiver/InternetArchive", threads=4):
     """
     Download metadata and media files for an Internet Archive item.
     Filters out .ia.mp4 files and excludes unnecessary metadata.
