@@ -7,10 +7,16 @@ const StandardMediaViewer = ({ media }) => {
         <div className="viewer-container">
             <h2 className="viewer-title">{media.title}</h2>
             <video
-                src={media.video_url}
+                src={media.media_url}
                 controls
+                autoPlay
+                muted
                 className="standard-viewer"
-                style={{ aspectRatio: '16 / 9' }}
+                style={{
+                    aspectRatio: '16 / 9',
+                }}
+                onLoadedData={() => console.log('Standard video loaded successfully:', media.media_url)}
+                onError={(e) => console.error('Error loading standard video:', e)}
             />
         </div>
     );
