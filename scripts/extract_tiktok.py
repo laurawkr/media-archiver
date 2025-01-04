@@ -22,7 +22,7 @@ def sanitize_filename(filename, max_length=100):
         sanitized = f"{base[:max_length-len(ext)-3]}...{ext}"
     return sanitized
 
-def extract_tiktok_metadata(video_url, output_folder="data/tiktok"):
+def extract_tiktok_metadata(video_url, output_folder="/Volumes/media-archiver/TikTok"):
     """
     Extract metadata and download TikTok videos using yt-dlp.
     Matches metadata format to existing project for consistency.

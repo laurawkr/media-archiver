@@ -7,7 +7,7 @@ def sanitize_filename(filename):
     """Sanitize file names to ensure compatibility across file systems."""
     return re.sub(r'[^\w\-_\. ]', '_', filename)
 
-def extract_youtube_metadata(video_url, output_folder="data/youtube"):
+def extract_youtube_metadata(video_url, output_folder="/Volumes/media-archiver/YouTube"):
     """Extract metadata, save it, and download the best video format."""
     os.makedirs(output_folder, exist_ok=True)
 
