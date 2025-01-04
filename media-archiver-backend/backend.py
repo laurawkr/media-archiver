@@ -19,20 +19,26 @@ def list_saved_media():
         for item in os.listdir(source_folder):
             item_folder = os.path.join(source_folder, item)
             if os.path.isdir(item_folder):
-                metadata_file = os.path.join(item_folder, "metadata.json")
-                if os.path.exists(metadata_file):
-                    with open(metadata_file, "r") as f:
+                # Look for a JSON file and a media file (.mp4 or .mp3) in the folder
+                metadata_file = next(
+                    (file for file in os.listdir(item_folder) if file.endswith(".json")), None
+                )
+                media_file = next(
+                    (file for file in os.listdir(item_folder) if file.endswith((".mp4", ".mp3"))), None
+                )
+
+                if metadata_file and media_file:
+                    metadata_path = os.path.join(item_folder, metadata_file)
+                    media_path = os.path.join(item_folder, media_file)
+
+                    with open(metadata_path, "r") as f:
                         try:
                             metadata = json.load(f)
-                            # Add video URL for front-end linking
-                            video_file = next(
-                                (file for file in os.listdir(item_folder) if file.endswith(".mp4")), None
-                            )
-                            if video_file:
-                                metadata["video_url"] = f"/files/{source}/{item}/{video_file}"
+                            # Add media file URL for front-end linking
+                            metadata["media_url"] = f"/files/{source}/{item}/{media_file}"
                             media.append(metadata)
                         except json.JSONDecodeError:
-                            continue
+                            print(f"Invalid JSON in file: {metadata_path}")  # Log invalid JSON
     return media
 
 @app.route('/list-media', methods=['GET'])
