@@ -30,20 +30,22 @@ const URLInput = ({ onSubmit }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex gap-4 p-4">
-            <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Enter media URL"
-                className="border p-2 flex-grow"
-                required
-            />
-            <button type="submit" className="bg-blue-500 text-white p-2 rounded">
-                Download
-            </button>
-            {message && <p className="mt-2 text-sm text-gray-500">{message}</p>}
-        </form>
+        <div className="url-input-container">
+            <form onSubmit={handleSubmit} className="url-input-form">
+                <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="Enter media URL"
+                    className="url-input-field"
+                    required
+                />
+                <button type="submit" className="url-submit-button">
+                    Download
+                </button>
+            </form>
+            {message && <p className="url-input-message">{message}</p>}
+        </div>
     );
 };
 

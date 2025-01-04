@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import URLInput from './components/URLInput';
 import MediaLibrary from './components/MediaLibrary';
+import VerticalMediaViewer from './components/VerticalMediaViewer';
+import StandardMediaViewer from './components/StandardMediaViewer';
 
 const App = () => {
     const [mediaList, setMediaList] = useState([]);
+    const [selectedMedia, setSelectedMedia] = useState(null);
 
-    // Define the fetchMediaList function in the appropriate scope
     const fetchMediaList = async () => {
         try {
             const response = await fetch('http://localhost:5000/list-media');
@@ -21,21 +23,31 @@ const App = () => {
     };
 
     useEffect(() => {
-        fetchMediaList(); // Fetch media list when the component mounts
+        fetchMediaList();
     }, []);
 
     const handleURLSubmit = (url) => {
-        // Refresh the media list after a delay to allow backend processing
         setTimeout(() => {
-            fetchMediaList(); // Use the properly scoped fetchMediaList function
+            fetchMediaList();
         }, 1000);
+    };
+
+    const handleMediaSelect = (media) => {
+        setSelectedMedia(media);
     };
 
     return (
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
             <URLInput onSubmit={handleURLSubmit} />
-            <MediaLibrary mediaList={mediaList} />
+            <div className="media-viewers">
+                {selectedMedia?.folder === 'TikTok' ? (
+                    <VerticalMediaViewer media={selectedMedia} />
+                ) : (
+                    <StandardMediaViewer media={selectedMedia} />
+                )}
+            </div>
+            <MediaLibrary mediaList={mediaList} onMediaSelect={handleMediaSelect} />
         </div>
     );
 };
