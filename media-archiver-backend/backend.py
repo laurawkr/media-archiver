@@ -70,7 +70,7 @@ def list_saved_media():
                     with open(metadata_path, "r") as f:
                         try:
                             metadata = json.load(f)
-                            metadata["media_url"] = f"/files/{source}/{item}/{media_file}"
+                            metadata["media_url"] = f"http://localhost:5000/files/{source}/{item}/{media_file}"  # Adjust path
                             media.append(metadata)
                         except json.JSONDecodeError:
                             print(f"Invalid JSON in file: {metadata_path}")  # Debug log
