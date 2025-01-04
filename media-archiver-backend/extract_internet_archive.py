@@ -36,6 +36,15 @@ def download_archive_item(item_id, output_folder="/Volumes/media-archiver/Intern
         response.raise_for_status()
         metadata = response.json()
 
+        # Additions start here
+        # Create a dedicated folder for this item
+        item_folder = os.path.join(output_folder, sanitize_filename(item_id))
+        os.makedirs(item_folder, exist_ok=True)
+
+        # Update metadata filename to include the folder
+        metadata_file = os.path.join(item_folder, f"{sanitize_filename(item_id)}_filtered.json")
+        # Additions end here
+
         # Filter metadata for .mp4 files (excluding .ia.mp4)
         files_to_download = [
             file for file in metadata.get("files", [])
@@ -43,9 +52,8 @@ def download_archive_item(item_id, output_folder="/Volumes/media-archiver/Intern
         ]
 
         # Save filtered metadata
-        metadata_file = os.path.join(output_folder, f"{sanitize_filename(item_id)}_filtered.json")
         filtered_metadata = {"files": files_to_download}
-        with open(metadata_file, "w") as f:
+        with open(metadata_file, "w") as f:  # This line now uses metadata_file
             json.dump(filtered_metadata, f, indent=4)
         logging.info(f"Filtered metadata saved for item: {item_id} at {metadata_file}")
 
@@ -53,7 +61,9 @@ def download_archive_item(item_id, output_folder="/Volumes/media-archiver/Intern
         with ThreadPoolExecutor(max_workers=threads) as executor:
             for file in files_to_download:
                 file_url = f"https://archive.org/download/{item_id}/{file['name']}"
-                output_file = os.path.join(output_folder, sanitize_filename(file["name"]))
+
+                output_file = os.path.join(item_folder, sanitize_filename(file["name"]))  # File path now uses item_folder
+
                 executor.submit(download_file, file_url, output_file)
 
     except requests.RequestException as e:

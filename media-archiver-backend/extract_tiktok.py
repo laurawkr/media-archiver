@@ -53,20 +53,23 @@ def extract_tiktok_metadata(video_url, output_folder="/Volumes/media-archiver/Ti
             }
         }
 
+        # Create a dedicated folder for this video
+        video_id = raw_metadata["id"]
+        video_folder = os.path.join(output_folder, sanitize_filename(video_id))
+        os.makedirs(video_folder, exist_ok=True)
+
+        # Update metadata filename and video path to include the folder
+        metadata_filename = os.path.join(video_folder, f"{sanitize_filename(raw_metadata['id'])}_metadata.json")
+        video_path = os.path.join(video_folder, sanitize_filename(raw_metadata["title"]) + ".mp4")
+
         # Save refined metadata to a file
-        metadata_filename = os.path.join(
-            output_folder, f"{sanitize_filename(raw_metadata['id'])}_metadata.json"
-        )
-        with open(metadata_filename, "w") as metadata_file:
+        with open(metadata_filename, "w") as metadata_file:  # This line now uses metadata_filename
             json.dump(refined_metadata, metadata_file, indent=4)
 
         logging.info(f"Refined metadata saved: {metadata_filename}")
 
         # Download video
         best_format_id = refined_metadata["best_format"]["format_id"]
-        video_filename = sanitize_filename(raw_metadata["title"]) + ".mp4"
-        video_path = os.path.join(output_folder, video_filename)
-
         download_command = [
             "yt-dlp",
             "-f", best_format_id,
