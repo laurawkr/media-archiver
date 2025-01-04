@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/laurawkr/media-archiver/issues"
   },
-  "homepage": "https://github.com/laurawkr/media-archiver#readme"
+  "homepage": "https://github.com/laurawkr/media-archiver#readme",
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  }
 }
