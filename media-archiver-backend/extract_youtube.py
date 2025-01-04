@@ -51,10 +51,12 @@ def extract_youtube_metadata(video_url, output_folder="/Volumes/media-archiver/Y
 
         download_command = [
             "yt-dlp",
-            "-f", best_format_id,
+            "-f", "bestvideo+bestaudio[ext=m4a]/best",
+            "--merge-output-format", "mp4",
             video_url,
             "-o", video_path
         ]
+
         subprocess.run(download_command, check=True)
         print(f"Video downloaded: {video_path}")
 
