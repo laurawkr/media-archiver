@@ -3,6 +3,7 @@ import URLInput from './components/URLInput';
 import MediaLibrary from './components/MediaLibrary';
 import VerticalMediaViewer from './components/VerticalMediaViewer';
 import StandardMediaViewer from './components/StandardMediaViewer';
+import './App.css';
 
 const App = () => {
     const [mediaList, setMediaList] = useState([]);
@@ -41,7 +42,7 @@ const App = () => {
             <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
             <URLInput onSubmit={handleURLSubmit} />
             <div className="media-viewers">
-                {selectedMedia?.folder === 'TikTok' ? (
+                {selectedMedia?.media_url.includes('/TikTok/') ? (
                     <VerticalMediaViewer media={selectedMedia} />
                 ) : (
                     <StandardMediaViewer media={selectedMedia} />

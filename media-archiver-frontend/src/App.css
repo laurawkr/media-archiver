@@ -12,28 +12,25 @@ h1 {
 }
 
 .url-input-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
+  background-color: #e0f7fa;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
 .url-input-form {
   display: flex;
   gap: 10px;
-  align-items: center;
-  background-color: #f0f4f8;
-  padding: 10px 15px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  justify-content: center;
 }
 
 .url-input-field {
-  flex-grow: 1;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 16px;
+  flex: 1;
 }
 
 .url-submit-button {
@@ -91,6 +88,9 @@ h1 {
 .viewer-container {
   margin: 20px 0;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the viewers horizontally */
 }
 
 .viewer-title {
@@ -100,11 +100,18 @@ h1 {
 }
 
 .vertical-viewer {
-  width: 100%;
-  max-width: 300px;
+  width: 300px; /* Set fixed size for consistency */
+  height: auto;
+  border: 12px solid #13161c;
+  border-radius: 12px;
+  margin-top: 10px;
 }
 
+
 .standard-viewer {
-  width: 100%;
-  max-width: 600px;
+  width: 600px; /* Set fixed size for consistency */
+  height: auto;
+  border: 12px solid #5a5530;
+  border-radius: 12px;
+  margin-top: 10px;
 }
