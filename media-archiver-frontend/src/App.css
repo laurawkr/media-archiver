@@ -57,8 +57,8 @@ h1 {
 
 .search-container {
   display: flex;
-  justify-content: center;
-  margin: 20px 0;
+  justify-content: left;
+  margin: 200px;
   gap: 10px;
 }
 
@@ -107,11 +107,58 @@ h1 {
   margin-top: 10px;
 }
 
-
 .standard-viewer {
   width: 600px; /* Set fixed size for consistency */
   height: auto;
   border: 12px solid #5a5530;
   border-radius: 12px;
   margin-top: 10px;
+}
+
+.media-card {
+  margin-left: 200px; /* Add left margin */
+}
+
+img {
+  max-width: 350px; /* Smaller thumbnail size */
+  border-radius: 8px;
+}
+
+.grid {
+  gap: 40px; /* Increase space between cards */
+}
+
+.metadata-display {
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  padding: 20px;
+  width: 750px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.metadata-thumbnail {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.metadata-display input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px;
+  width: calc(100% - 8px);
+}
+
+.metadata-display button {
+  margin-right: 10px;
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.metadata-display button:hover {
+  background-color: #0056b3;
 }
