@@ -22,8 +22,8 @@ def sanitize_filename(name):
 
 def download_archive_item(item_id, output_folder="/Volumes/media-archiver/InternetArchive", threads=4):
     """
-    Download metadata and media files for an Internet Archive item.
-    Filters out .ia.mp4 files and excludes unnecessary metadata.
+    Download metadata, media files, and thumbnails for an Internet Archive item.
+    Folder and video are named with the 'id'. Metadata remains unchanged.
     """
     logging.info(f"Starting download for item: {item_id}")
     os.makedirs(output_folder, exist_ok=True)
@@ -36,35 +36,61 @@ def download_archive_item(item_id, output_folder="/Volumes/media-archiver/Intern
         response.raise_for_status()
         metadata = response.json()
 
-        # Additions start here
-        # Create a dedicated folder for this item
-        item_folder = os.path.join(output_folder, sanitize_filename(item_id))
-        os.makedirs(item_folder, exist_ok=True)
-
-        # Update metadata filename to include the folder
-        metadata_file = os.path.join(item_folder, f"{sanitize_filename(item_id)}_filtered.json")
-        # Additions end here
-
-        # Filter metadata for .mp4 files (excluding .ia.mp4)
+        # Filter metadata for video files
         files_to_download = [
             file for file in metadata.get("files", [])
             if file["name"].endswith(".mp4") and not file["name"].endswith(".ia.mp4")
         ]
 
-        # Save filtered metadata
-        filtered_metadata = {"files": files_to_download}
-        with open(metadata_file, "w") as f:  # This line now uses metadata_file
-            json.dump(filtered_metadata, f, indent=4)
-        logging.info(f"Filtered metadata saved for item: {item_id} at {metadata_file}")
+        # Filter metadata for thumbnails
+        thumbnails = [
+            file for file in metadata.get("files", [])
+            if file["name"].endswith((".jpg", ".jpeg", ".png"))
+        ]
 
-        # Download files in parallel
+        # Download each video
         with ThreadPoolExecutor(max_workers=threads) as executor:
             for file in files_to_download:
+                video_id = sanitize_filename(file["name"].split("/")[-1].split(".")[0])
+                video_folder = os.path.join(output_folder, video_id)
+                os.makedirs(video_folder, exist_ok=True)
+
+                # Download the video
                 file_url = f"https://archive.org/download/{item_id}/{file['name']}"
-
-                output_file = os.path.join(item_folder, sanitize_filename(file["name"]))  # File path now uses item_folder
-
+                output_file = os.path.join(video_folder, f"{video_id}.mp4")
                 executor.submit(download_file, file_url, output_file)
+
+                # Determine thumbnail URL (use first available thumbnail)
+                thumbnail = next(iter(thumbnails), None)
+                thumbnail_url = (
+                    f"https://archive.org/download/{item_id}/{thumbnail['name']}" if thumbnail else None
+                )
+
+                # If no thumbnail, fallback to system video preview
+                if not thumbnail_url:
+                    thumbnail_url = f"Preview for {video_id}.mp4 (use system thumbnail rendering)"
+
+                # Safely construct metadata JSON
+                video_metadata = {
+                    "id": video_id,
+                    "title": metadata.get("metadata", {}).get("title", "Unknown Title"),
+                    "duration": int(float(file.get("length", 0) or 0)),  # Default to 0 if missing
+                    "uploader": metadata.get("metadata", {}).get("creator", "Unknown Uploader"),
+                    "upload_date": metadata.get("created", "Unknown Date"),  # Default string if missing
+                    "thumbnail": thumbnail_url,
+                    "best_format": {
+                        "format_id": file.get("format", "Unknown Format"),
+                        "filesize": int(file.get("size", 0) or 0),  # Default to 0 if missing
+                        "ext": file["name"].split(".")[-1],
+                        "resolution": f"{file.get('width', 0)}x{file.get('height', 0)}",
+                        "fps": None,
+                    }
+                }
+
+                # Save metadata JSON
+                metadata_file = os.path.join(video_folder, f"{video_id}_metadata.json")
+                with open(metadata_file, "w") as f:
+                    json.dump(video_metadata, f, indent=4)
 
     except requests.RequestException as e:
         logging.error(f"Failed to fetch or process item {item_id}: {e}")
@@ -76,7 +102,7 @@ def download_file(url, output_path):
     """
     try:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        last_log_time = time.time()  # Initialize the last log time
+        last_log_time = time.time()
         with requests.get(url, stream=True, timeout=30) as response:
             response.raise_for_status()
             total_size = int(response.headers.get('content-length', 0))
@@ -88,11 +114,10 @@ def download_file(url, output_path):
                     current_time = time.time()
                     if current_time - last_log_time >= 30:
                         logging.info(f"Downloading: {url} - {downloaded}/{total_size} bytes")
-                        last_log_time = current_time  # Update the last log time
+                        last_log_time = current_time
         logging.info(f"File saved: {output_path}")
     except requests.RequestException as e:
         logging.error(f"Failed to download {url}: {e}")
-
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
