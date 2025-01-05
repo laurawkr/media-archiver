@@ -65,77 +65,90 @@ const App = () => {
             <div className="main-content">
                 {selectedMedia && (
                     <div className="metadata-display">
-                        <img src={selectedMedia.thumbnail} alt={selectedMedia.title} className="metadata-thumbnail" />
-                        <h2>
+                    <img
+                        src={selectedMedia.thumbnail}
+                        alt={selectedMedia.title}
+                        className="metadata-thumbnail"
+                    />
+                    <h2>
+                        {isEditing ? (
+                        <input
+                            value={editedMetadata.title}
+                            onChange={(e) => handleInputChange('title', e.target.value)}
+                        />
+                        ) : (
+                        selectedMedia.title
+                        )}
+                    </h2>
+                    <ul>
+                        {Object.keys(selectedMedia).map((key) =>
+                        key !== 'thumbnail' &&
+                        key !== 'title' &&
+                        key !== 'best_format' ? (
+                            <li key={key}>
+                            <strong>{key}:</strong>{' '}
                             {isEditing ? (
                                 <input
-                                    value={editedMetadata.title}
-                                    onChange={(e) => handleInputChange('title', e.target.value)}
+                                value={editedMetadata[key]}
+                                onChange={(e) => handleInputChange(key, e.target.value)}
                                 />
                             ) : (
-                                selectedMedia.title
+                                selectedMedia[key]
                             )}
-                        </h2>
-                        <ul>
-                            {Object.keys(selectedMedia).map((key) => (
-                                key !== 'thumbnail' && key !== 'title' && key !== 'best_format' && (
-                                    <li key={key}>
-                                        <strong>{key}:</strong>{' '}
-                                        {isEditing ? (
-                                            <input
-                                                value={editedMetadata[key]}
-                                                onChange={(e) => handleInputChange(key, e.target.value)}
-                                            />
-                                        ) : (
-                                            selectedMedia[key]
-                                        )}
-                                    </li>
-                                )
-                            ))}
-                            {selectedMedia.best_format && (
-                                <li>
-                                    <strong>Best Format:</strong>
-                                    <ul>
-                                        {Object.entries(selectedMedia.best_format).map(([subKey, subValue]) => (
-                                            <li key={subKey}>
-                                                <strong>{subKey}:</strong>{' '}
-                                                {isEditing ? (
-                                                    <input
-                                                        value={editedMetadata.best_format[subKey]}
-                                                        onChange={(e) =>
-                                                            setEditedMetadata((prev) => ({
-                                                                ...prev,
-                                                                best_format: { ...prev.best_format, [subKey]: e.target.value },
-                                                            }))
-                                                        }
-                                                    />
-                                                ) : (
-                                                    subValue
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </li>
-                            )}
-                        </ul>
-                        {isEditing ? (
-                            <div>
-                                <button onClick={handleSaveClick}>Save</button>
-                                <button onClick={handleCancelClick}>Cancel</button>
-                            </div>
-                        ) : (
-                            <button onClick={handleEditClick}>Edit Metadata</button>
+                            </li>
+                        ) : null
                         )}
+                        {selectedMedia.best_format && (
+                        <li>
+                            <strong>Best Format:</strong>
+                            <ul>
+                            {Object.entries(selectedMedia.best_format).map(([subKey, subValue]) => (
+                                <li key={subKey}>
+                                <strong>{subKey}:</strong>{' '}
+                                {isEditing ? (
+                                    <input
+                                    value={editedMetadata.best_format[subKey]}
+                                    onChange={(e) =>
+                                        setEditedMetadata((prev) => ({
+                                        ...prev,
+                                        best_format: {
+                                            ...prev.best_format,
+                                            [subKey]: e.target.value,
+                                        },
+                                        }))
+                                    }
+                                    />
+                                ) : (
+                                    subValue
+                                )}
+                                </li>
+                            ))}
+                            </ul>
+                        </li>
+                        )}
+                    </ul>
+                    {isEditing ? (
+                        <div>
+                        <button onClick={handleSaveClick}>Save</button>
+                        <button onClick={handleCancelClick}>Cancel</button>
+                        </div>
+                    ) : (
+                        <button onClick={handleEditClick}>Edit Metadata</button>
+                    )}
                     </div>
                 )}
                 <div className="media-viewers">
                     {selectedMedia?.media_url.includes('/TikTok/') ? (
-                        <VerticalMediaViewer media={selectedMedia} />
+                    <VerticalMediaViewer media={selectedMedia} />
                     ) : (
-                        <StandardMediaViewer media={selectedMedia} />
+                    <StandardMediaViewer media={selectedMedia} />
                     )}
                 </div>
+                <div className="search-container">
+                    <MediaLibrary mediaList={mediaList} onMediaSelect={(media) => setSelectedMedia(media)} />
+                </div>
             </div>
+
             <div className="search-container">
                 <MediaLibrary mediaList={mediaList} onMediaSelect={(media) => setSelectedMedia(media)} />
             </div>
