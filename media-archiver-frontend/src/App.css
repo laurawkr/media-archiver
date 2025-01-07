@@ -151,6 +151,46 @@ img {
   padding: 20px;
 }
 
+.comments-section {
+  width: 300px; 
+  max-height: 400px; 
+  overflow-y: auto; 
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.comments-section h3 {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.comments-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.comment {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-username {
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.comment-text {
+  font-size: 14px;
+  color: #333;
+}
+
 .metadata-display {
   background-color: #f2f2f2;
   border-radius: 8px;
@@ -184,5 +224,20 @@ img {
 }
 
 .metadata-display button:hover {
+  background-color: #0056b3;
+}
+
+.download-comments-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.download-comments-button:hover {
   background-color: #0056b3;
 }
