@@ -4,6 +4,19 @@ import json
 import subprocess
 import re
 from flask_cors import CORS
+import subprocess
+
+def transcode_mkv(file_path):
+    """Transcode MKV file to ensure compatibility."""
+    output_path = file_path.replace(".mkv", "_compatible.mkv")
+    command = [
+        "ffmpeg", "-i", file_path,
+        "-c:v", "copy", "-c:a", "aac", "-strict", "experimental",
+        output_path
+    ]
+    subprocess.run(command, check=True)
+    return output_path
+
 
 app = Flask(__name__)
 CORS(app)  # Apply CORS to the Flask app
@@ -63,7 +76,7 @@ def list_saved_media():
                     (file for file in os.listdir(item_folder) if file.endswith(".json")), None
                 )
                 media_file = next(
-                    (file for file in os.listdir(item_folder) if file.endswith((".mp4", ".mp3"))), None
+                    (file for file in os.listdir(item_folder) if file.endswith((".mp4", ".mkv", ".mp3"))), None
                 )
 
                 if metadata_file and media_file:
@@ -195,6 +208,11 @@ def upload_local():
     output_folder = "/Volumes/media-archiver/LocalUpload"
     file_path = os.path.join(output_folder, file.filename)
     file.save(file_path)
+    if file.filename.endswith('.mkv'):
+        try:
+            file_path = transcode_mkv(file_path)  # Transcode MKV files
+        except Exception as e:
+            return jsonify({"error": f"Failed to transcode file: {e}"}), 500
 
     try:
         from local_file_upload import upload_local_media
