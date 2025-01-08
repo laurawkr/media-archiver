@@ -57,7 +57,7 @@ def upload_local_media(file_path, output_folder="/Volumes/media-archiver/LocalUp
             "duration": None,  # Duration can be added if needed
             "uploader": "Local User",
             "upload_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "thumbnail": "/Volumes/media-archiver/App/thumbnail/default-thumbnail.png",
+            "thumbnail": "https://static.thenounproject.com/png/82078-200.png",
             "best_format": {
                 "format_id": "Local File",
                 "filesize": os.path.getsize(destination_path),

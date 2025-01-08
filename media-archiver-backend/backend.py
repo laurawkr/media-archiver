@@ -51,7 +51,7 @@ def process_url():
 def list_saved_media():
     """List all saved media from the media folder."""
     media = []
-    for source in ["YouTube", "TikTok", "InternetArchive"]:
+    for source in ["YouTube", "TikTok", "InternetArchive", "LocalUpload"]:
         source_folder = os.path.join(MEDIA_FOLDER, source)
         if not os.path.exists(source_folder):
             continue
@@ -181,6 +181,27 @@ def download_comments():
 
 for rule in app.url_map.iter_rules():
     print(f"Endpoint: {rule.endpoint}, URL: {rule}")
+
+@app.route('/upload-local', methods=['POST'])
+def upload_local():
+    """Handle local file uploads."""
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Empty filename"}), 400
+
+    output_folder = "/Volumes/media-archiver/LocalUpload"
+    file_path = os.path.join(output_folder, file.filename)
+    file.save(file_path)
+
+    try:
+        from local_file_upload import upload_local_media
+        metadata_file, destination_path = upload_local_media(file_path)
+        return jsonify({"message": "File uploaded successfully", "metadata": metadata_file})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

@@ -12,6 +12,30 @@ const App = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedMetadata, setEditedMetadata] = useState(null);
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:5000/upload-local', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    console.log("File uploaded successfully");
+                    fetchMediaList(); // Refresh media list
+                } else {
+                    console.error("File upload failed");
+                }
+            } catch (error) {
+                console.error("Error uploading file:", error);
+            }
+        }
+    };
+
     const fetchMediaList = async () => {
         try {
             const response = await fetch('http://localhost:5000/list-media');
@@ -63,6 +87,15 @@ const App = () => {
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
             <URLInput onSubmit={() => fetchMediaList()} />
+            <div className="upload-container">
+                <label htmlFor="local-upload" className="local-upload-label">Local Upload</label>
+                <input
+                    id="local-upload"
+                    type="file"
+                    onChange={handleFileUpload}
+                    className="local-upload-input"
+                />
+            </div>
             <div className="main-content">
                 {/* Metadata Panel */}
                 {selectedMedia && (
