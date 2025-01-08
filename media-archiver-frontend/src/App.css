@@ -84,9 +84,10 @@ h1 {
 
 .media-grid-container {
   height: 1000px; /* Set the desired scrollable height */
-  width: 600px;
+  width: 650px;
   overflow-y: auto; /* Enable vertical scrolling */
   border: 1px solid #ddd; /* Optional: Add a border to separate it visually */
+  border-left: 50px ;
   border-radius: 6px; /* Optional: Add rounded corners */
   padding: 10px; /* Optional: Add padding inside the container */
   background-color: #fff; /* Match the background with your design */
@@ -179,13 +180,32 @@ img {
   padding: 20px;
 }
 
+.comments-header-container {
+  position: sticky;
+  background-color: #f9f9f9;
+  padding: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1; /* Ensure it stays on top */
+}
+
+.comments-header {
+  width: 300px;
+  max-height: 400px;
+}
+
 .comments-section {
+  width: 300px;
+  max-height: 400px; /* Only outer container controls scrolling */
+  
+}
+
+.comments-list{
   width: 300px;
   max-height: 400px; /* Only outer container controls scrolling */
   overflow-y: auto;
   background-color: #f2f2f2;
   border-radius: 8px;
-  padding: 10px;
+  border-top-width: 400px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 

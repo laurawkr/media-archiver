@@ -141,7 +141,7 @@ const App = () => {
                     </div>
                 )}
 
-                {/* Comments Section */}
+                {/* Comments Scroller */}
                 {selectedMedia && (
                     <div className="comments-section">
                         <CommentsSection comments={selectedMedia.comments || []} />

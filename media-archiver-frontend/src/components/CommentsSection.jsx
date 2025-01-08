@@ -11,12 +11,16 @@ const CommentsSection = ({ comments }) => {
 
     return (
         <div className="comments-section">
-            <h3>Comments</h3>
-            <ul>
+            <div className="comments-header-container">
+                <div className="comments-header">
+                    <h3>Comments</h3>
+                </div>
+            </div>
+            <ul className="comments-list">
                 {formattedComments.map((comment, index) => (
                     <li key={index} className="comment">
-                        <span className="comment-username"> {comment.username}</span>
-                        <p className="comment-text"> {comment.text}</p>
+                        <span className="comment-username">{comment.username}</span>
+                        <p className="comment-text">{comment.text}</p>
                         <hr />
                     </li>
                 ))}
@@ -26,3 +30,4 @@ const CommentsSection = ({ comments }) => {
 };
 
 export default CommentsSection;
+
