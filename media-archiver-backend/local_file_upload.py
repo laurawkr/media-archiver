@@ -15,6 +15,12 @@ def sanitize_filename(filename):
     """Sanitize file names to ensure compatibility across file systems."""
     return "".join(c if c.isalnum() or c in " ._-()" else "_" for c in filename)
 
+def buffered_copy(src, dest, buffer_size=1024 * 1024):
+    """Copy a file in chunks to handle large files."""
+    with open(src, "rb") as src_file, open(dest, "wb") as dest_file:
+        while chunk := src_file.read(buffer_size):
+            dest_file.write(chunk)
+
 def upload_local_media(file_path, output_folder="/Volumes/media-archiver/LocalUpload"):
     """
     Upload a local media file, generate metadata, and save the file in a dedicated folder.
@@ -44,9 +50,10 @@ def upload_local_media(file_path, output_folder="/Volumes/media-archiver/LocalUp
             logging.info(f"Creating video folder: {video_folder}")
             os.makedirs(video_folder, exist_ok=True)
 
-        # Copy the file to the new folder
+        # Copy the file to the new folder using buffered copy
         destination_path = os.path.join(video_folder, sanitized_name)
-        shutil.copy(file_path, destination_path)
+        logging.info(f"Copying file to: {destination_path}")
+        buffered_copy(file_path, destination_path)
         logging.info(f"File uploaded to: {destination_path}")
 
         # Generate metadata
@@ -78,18 +85,3 @@ def upload_local_media(file_path, output_folder="/Volumes/media-archiver/LocalUp
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         raise
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 2:
-        print("Usage: python3 upload_local_media.py <file_path>")
-        sys.exit(1)
-
-    file_path = sys.argv[1]
-    try:
-        metadata, file_location = upload_local_media(file_path)
-        print(os.path.exists('/Volumes/media-archiver/App/thumbnail'))  # Should return True
-        print(os.path.isfile('/Volumes/media-archiver/App/thumbnail/default-thumbnail.png'))  # Should return True
-        print(f"File uploaded successfully!\nMetadata: {metadata}\nLocation: {file_location}")
-    except Exception as e:
-        print(f"Error: {e}")

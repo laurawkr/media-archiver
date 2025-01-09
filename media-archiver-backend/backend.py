@@ -5,21 +5,29 @@ import subprocess
 import re
 from flask_cors import CORS
 import subprocess
+from flask_socketio import SocketIO, emit
+
+app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 80 * 1024 * 1024 * 1024  # 80GB limit
+CORS(app)  # Apply CORS to the Flask app
+
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 
 def transcode_mkv(file_path):
     """Transcode MKV file to ensure compatibility."""
-    output_path = file_path.replace(".mkv", "_compatible.mkv")
+    output_path = file_path.replace(".mkv", "_compatible.mp4")
+    output_path = file_path.replace(".mkv", ".mp4")
     command = [
         "ffmpeg", "-i", file_path,
-        "-c:v", "copy", "-c:a", "aac", "-strict", "experimental",
-        output_path
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-strict", "experimental",
+        "-y", output_path
     ]
     subprocess.run(command, check=True)
     return output_path
-
-
-app = Flask(__name__)
-CORS(app)  # Apply CORS to the Flask app
 
 MEDIA_FOLDER = "/Volumes/media-archiver"  # Adjust to your media folder path
 
@@ -76,7 +84,7 @@ def list_saved_media():
                     (file for file in os.listdir(item_folder) if file.endswith(".json")), None
                 )
                 media_file = next(
-                    (file for file in os.listdir(item_folder) if file.endswith((".mp4", ".mkv", ".mp3"))), None
+                    (file for file in os.listdir(item_folder) if file.endswith((".mp4", ".mkv", ".mov", ".mp3"))), None
                 )
 
                 if metadata_file and media_file:
@@ -198,29 +206,45 @@ for rule in app.url_map.iter_rules():
 @app.route('/upload-local', methods=['POST'])
 def upload_local():
     """Handle local file uploads."""
+    print("Incoming request: POST /upload-local")  # Debug log
+
     if 'file' not in request.files:
+        print("Error: No file part in the request")  # Debug log
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files['file']
     if file.filename == '':
+        print("Error: Empty filename")  # Debug log
         return jsonify({"error": "Empty filename"}), 400
 
-    output_folder = "/Volumes/media-archiver/LocalUpload"
-    file_path = os.path.join(output_folder, file.filename)
-    file.save(file_path)
-    if file.filename.endswith('.mkv'):
-        try:
-            file_path = transcode_mkv(file_path)  # Transcode MKV files
-        except Exception as e:
-            return jsonify({"error": f"Failed to transcode file: {e}"}), 500
-
     try:
+        print(f"Uploading file: {file.filename}")  # Debug log
+        output_folder = "/Volumes/media-archiver/LocalUpload"
+        os.makedirs(output_folder, exist_ok=True)
+
+        file_path = os.path.join(output_folder, file.filename)
+        print(f"Saving file: {file.filename} to {file_path}")
+        file.save(file_path)
+        print(f"File saved successfully: {file_path}")
+
+        if file.filename.endswith('.mkv'):
+            file_path = transcode_mkv(file_path)
+            print(f"File transcoded: {file_path}")  # Debug log
+
         from local_file_upload import upload_local_media
         metadata_file, destination_path = upload_local_media(file_path)
         return jsonify({"message": "File uploaded successfully", "metadata": metadata_file})
+
     except Exception as e:
+        print(f"Error during upload-local: {e}")  # Debug log
         return jsonify({"error": str(e)}), 500
+
+    
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return jsonify({"error": "File is too large. Maximum allowed size is 80GB."}), 413
+
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)

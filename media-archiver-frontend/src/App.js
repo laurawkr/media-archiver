@@ -5,22 +5,36 @@ import VerticalMediaViewer from './components/VerticalMediaViewer';
 import StandardMediaViewer from './components/StandardMediaViewer';
 import CommentsSection from './components/CommentsSection';
 import './App.css';
+import { io } from "socket.io-client";
 
 const App = () => {
     const [mediaList, setMediaList] = useState([]);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedMetadata, setEditedMetadata] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0); 
+    const [isUploading, setIsUploading] = useState(false);  
+
+    useEffect(() => {
+        const socket = io("http://localhost:5000/progress");
+        socket.on("upload_progress", (data) => {
+            setUploadProgress(data.progress);
+        });
+        return () => socket.disconnect();
+    }, []);
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (file) {
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append("file", file);
+
+            setIsUploading(true);
+            setUploadProgress(0);
 
             try {
-                const response = await fetch('http://localhost:5000/upload-local', {
-                    method: 'POST',
+                const response = await fetch("http://localhost:5000/upload-local", {
+                    method: "POST",
                     body: formData,
                 });
 
@@ -32,6 +46,8 @@ const App = () => {
                 }
             } catch (error) {
                 console.error("Error uploading file:", error);
+            } finally {
+                setIsUploading(false);
             }
         }
     };
@@ -88,13 +104,25 @@ const App = () => {
             <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
             <URLInput onSubmit={() => fetchMediaList()} />
             <div className="upload-container">
-                <label htmlFor="local-upload" className="local-upload-label">Local Upload</label>
-                <input
-                    id="local-upload"
-                    type="file"
-                    onChange={handleFileUpload}
-                    className="local-upload-input"
-                />
+                {isUploading ? (
+                    <div className="progress-bar">
+                        <div
+                            className="progress-bar-fill"
+                            style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                        <span>{Math.round(uploadProgress)}%</span>
+                    </div>
+                ) : (
+                    <label htmlFor="local-upload" className="local-upload-label">
+                        Local Upload
+                        <input
+                            id="local-upload"
+                            type="file"
+                            onChange={handleFileUpload}
+                            className="local-upload-input"
+                        />
+                    </label>
+                )}
             </div>
             <div className="main-content">
                 {/* Metadata Panel */}
