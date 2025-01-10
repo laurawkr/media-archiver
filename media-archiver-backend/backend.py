@@ -6,6 +6,8 @@ import re
 from flask_cors import CORS
 import subprocess
 from flask_socketio import SocketIO, emit
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 80 * 1024 * 1024 * 1024  # 80GB limit
@@ -72,7 +74,7 @@ def process_url():
 def list_saved_media():
     """List all saved media from the media folder."""
     media = []
-    for source in ["YouTube", "TikTok", "InternetArchive", "LocalUpload"]:
+    for source in ["YouTube", "TikTok", "InternetArchive", "LocalUpload", "MediaStudioSavedClips"]:
         source_folder = os.path.join(MEDIA_FOLDER, source)
         if not os.path.exists(source_folder):
             continue
@@ -262,6 +264,9 @@ def save_clip():
     video_input = f"/Volumes/media-archiver/{'/'.join(video_url.split('/')[-3:])}"
     audio_input = f"/Volumes/media-archiver/{'/'.join(audio_url.split('/')[-3:])}" if audio_url else None
     output_path = f"/Volumes/media-archiver/MediaStudioSavedClips/{clip_name}.mp4"
+    clip_folder = f"/Volumes/media-archiver/MediaStudioSavedClips/{clip_name}/"
+    os.makedirs(clip_folder, exist_ok=True)
+    output_path = os.path.join(clip_folder, f"{clip_name}.mp4")
 
     try:
         # Build ffmpeg command based on presence of audio_url
@@ -282,6 +287,30 @@ def save_clip():
         # Execute ffmpeg command
         print("Running command:", " ".join(command))  # Debug log
         subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+
+        # Create metadata
+        metadata = {
+            "id": clip_name,
+            "title": clip_name,
+            "duration": end_time - start_time,
+            "uploader": "local_user",
+            "upload_date": datetime.now().strftime("%Y-%m-%d"),
+            "thumbnail": None,
+            "original_audio_source": audio_input,
+            "original_video_source": video_input,
+            "best_format": {
+                "format_id": None,  # Populate based on actual data
+                "filesize": os.path.getsize(output_path),
+                "ext": "mp4",
+                "resolution": None,  # Populate based on actual data
+                "fps": None  # Populate based on actual data
+            }
+        }
+
+        # Save metadata to a file
+        metadata_path = f"{clip_folder}clip_name_metadata.json"
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=4)
 
         return jsonify({"message": "Clip saved successfully", "path": output_path})
     except subprocess.CalledProcessError as e:
