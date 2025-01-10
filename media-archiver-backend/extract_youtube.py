@@ -35,6 +35,10 @@ def extract_youtube_metadata(video_url, output_folder="/Volumes/media-archiver/Y
             }
         }
 
+        # Append comments at the end of metadata
+        comments = raw_metadata.get("comments", [])
+        refined_metadata["comments"] = comments
+
         # Create a dedicated folder for this video
         video_id = raw_metadata["id"]
         video_folder = os.path.join(output_folder, sanitize_filename(video_id))
