@@ -245,6 +245,52 @@ def request_entity_too_large(error):
     return jsonify({"error": "File is too large. Maximum allowed size is 80GB."}), 413
 
 
+@app.route("/save-clip", methods=["POST"])
+def save_clip():
+    data = request.json
+
+    video_url = data.get("video_url")
+    audio_url = data.get("audio_url")
+    start_time = data.get("start_time")
+    end_time = data.get("end_time")
+    clip_name = data.get("clip_name")
+
+    if not video_url or not clip_name or start_time is None or end_time is None:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Resolve file paths
+    video_input = f"/Volumes/media-archiver/{'/'.join(video_url.split('/')[-3:])}"
+    audio_input = f"/Volumes/media-archiver/{'/'.join(audio_url.split('/')[-3:])}" if audio_url else None
+    output_path = f"/Volumes/media-archiver/MediaStudioSavedClips/{clip_name}.mp4"
+
+    try:
+        # Build ffmpeg command based on presence of audio_url
+        if audio_url:
+            command = [
+                "ffmpeg", "-i", video_input, "-i", audio_input,
+                "-ss", str(start_time), "-to", str(end_time),
+                "-c:v", "copy", "-c:a", "aac", "-map", "0:v:0", "-map", "1:a:0",
+                output_path
+            ]
+        else:
+            command = [
+                "ffmpeg", "-i", video_input,
+                "-ss", str(start_time), "-to", str(end_time),
+                "-c:v", "copy", "-an", output_path
+            ]
+
+        # Execute ffmpeg command
+        print("Running command:", " ".join(command))  # Debug log
+        subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+
+        return jsonify({"message": "Clip saved successfully", "path": output_path})
+    except subprocess.CalledProcessError as e:
+        print("Error running ffmpeg:", e.stderr.decode())  # Debug log
+        return jsonify({"error": e.stderr.decode()}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+

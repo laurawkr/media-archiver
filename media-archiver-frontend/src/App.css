@@ -323,3 +323,51 @@ img {
 .download-comments-button:hover {
   background-color: #0056b3;
 }
+
+.media-studio {
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+}
+
+.media-studio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: red;
+}
+
+.media-studio-info {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+
+.small-video-player {
+  width: 400px;
+  margin: 10px 0;
+}
+
+.media-studio-controls button {
+  margin: 5px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.media-studio-controls button:hover {
+  background-color: #0056b3;
+}

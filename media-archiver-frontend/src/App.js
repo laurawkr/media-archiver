@@ -4,6 +4,7 @@ import MediaLibrary from './components/MediaLibrary';
 import VerticalMediaViewer from './components/VerticalMediaViewer';
 import StandardMediaViewer from './components/StandardMediaViewer';
 import CommentsSection from './components/CommentsSection';
+import MediaStudio from './components/MediaStudio';
 import './App.css';
 import { io } from "socket.io-client";
 
@@ -13,7 +14,8 @@ const App = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedMetadata, setEditedMetadata] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0); 
-    const [isUploading, setIsUploading] = useState(false);  
+    const [isUploading, setIsUploading] = useState(false);
+    const [mediaStudioActive, setMediaStudioActive] = useState(false);  
 
     useEffect(() => {
         const socket = io("http://localhost:5000/progress");
@@ -198,7 +200,16 @@ const App = () => {
                             </div>
                         ) : (
                             <button onClick={handleEditClick}>Edit Metadata</button>
+
                         )}
+                        <button
+                                onClick={() => {
+                                    console.log("Open Media Studio clicked");
+                                    setMediaStudioActive(true);
+                                }}
+                        >
+                                Open Media Studio
+                        </button>
                     </div>
                 )}
 
@@ -207,6 +218,17 @@ const App = () => {
                     <div className="comments-section">
                         <CommentsSection comments={selectedMedia.comments || []} />
                     </div>
+                )}
+
+                {/* Media Studio Section */}
+                {selectedMedia && mediaStudioActive && (
+                    <MediaStudio 
+                        selectedMedia={selectedMedia}
+                        onMediaSave={(savedMedia) => {
+                            console.log("Media saved:", savedMedia);
+                            setMediaStudioActive(false);
+                        }}
+                    />
                 )}
 
                 {/* Media Viewer */}
