@@ -22,13 +22,14 @@ const VerticalMediaViewer = ({ media, repeat }) => {
 
     return (
         <div className="viewer-container">
-            <h2 className="viewer-title">{media.title}</h2>
+            <h2 className="viewer-title">
+            {media.title.length > 100 ? `${media.title.substring(0, 100)}...` : media.title}
+            </h2>
             <video
                 ref={videoRef}
                 src={media.media_url}
                 controls
                 autoPlay
-                muted
                 className="vertical-viewer"
                 style={{
                     aspectRatio: '9 / 16',
