@@ -4,6 +4,7 @@ import MediaLibrary from './components/MediaLibrary';
 import VerticalMediaViewer from './components/VerticalMediaViewer';
 import StandardMediaViewer from './components/StandardMediaViewer';
 import CommentsSection from './components/CommentsSection';
+import MediaStudio from './components/MediaStudio';
 import './App.css';
 import { io } from "socket.io-client";
 
@@ -13,7 +14,9 @@ const App = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedMetadata, setEditedMetadata] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0); 
-    const [isUploading, setIsUploading] = useState(false);  
+    const [isUploading, setIsUploading] = useState(false);
+    const [mediaStudioActive, setMediaStudioActive] = useState(false);
+    const [repeat, setRepeat] = useState(false);  
 
     useEffect(() => {
         const socket = io("http://localhost:5000/progress");
@@ -191,6 +194,7 @@ const App = () => {
                                 </li>
                             )}
                         </ul>
+                        {/*  
                         {isEditing ? (
                             <div>
                                 <button onClick={handleSaveClick}>Save</button>
@@ -198,7 +202,10 @@ const App = () => {
                             </div>
                         ) : (
                             <button onClick={handleEditClick}>Edit Metadata</button>
+
                         )}
+                        */}
+
                     </div>
                 )}
 
@@ -209,14 +216,32 @@ const App = () => {
                     </div>
                 )}
 
-                {/* Media Viewer */}
-                <div className="media-viewers">
-                    {selectedMedia?.media_url.includes('/TikTok/') ? (
-                        <VerticalMediaViewer media={selectedMedia} />
-                    ) : (
-                        <StandardMediaViewer media={selectedMedia} />
-                    )}
-                </div>
+                {mediaStudioActive ? (
+                    <MediaStudio 
+                        selectedMedia={selectedMedia}
+                        onMediaSave={(savedMedia) => {
+                            console.log("Media saved:", savedMedia);
+                            setMediaStudioActive(false); // Close Media Studio
+                        }}
+                        onClose={() => setMediaStudioActive(false)} // Close Media Studio when X is clicked
+                    />
+                ) : (
+                    <div className="media-viewers">
+                        {selectedMedia?.media_url.includes('/TikTok/') ? (
+                            <VerticalMediaViewer media={selectedMedia} repeat={repeat} />
+                        ) : (
+                            <StandardMediaViewer media={selectedMedia} repeat={repeat} />
+                        )}
+                        <button
+                            onClick={() => {
+                                console.log("Open Media Studio clicked");
+                                setMediaStudioActive(true); // Open Media Studio
+                            }}
+                        >
+                            Open Media Studio
+                        </button>
+                    </div>
+                )}
 
                 {/* Search Container */}
                 <div className="search-container">

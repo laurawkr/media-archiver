@@ -6,6 +6,8 @@ import re
 from flask_cors import CORS
 import subprocess
 from flask_socketio import SocketIO, emit
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 80 * 1024 * 1024 * 1024  # 80GB limit
@@ -72,7 +74,7 @@ def process_url():
 def list_saved_media():
     """List all saved media from the media folder."""
     media = []
-    for source in ["YouTube", "TikTok", "InternetArchive", "LocalUpload"]:
+    for source in ["YouTube", "TikTok", "InternetArchive", "LocalUpload", "MediaStudioSavedClips"]:
         source_folder = os.path.join(MEDIA_FOLDER, source)
         if not os.path.exists(source_folder):
             continue
@@ -245,6 +247,79 @@ def request_entity_too_large(error):
     return jsonify({"error": "File is too large. Maximum allowed size is 80GB."}), 413
 
 
+@app.route("/save-clip", methods=["POST"])
+def save_clip():
+    data = request.json
+
+    video_url = data.get("video_url")
+    audio_url = data.get("audio_url")
+    start_time = data.get("start_time")
+    end_time = data.get("end_time")
+    clip_name = data.get("clip_name")
+
+    if not video_url or not clip_name or start_time is None or end_time is None:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Resolve file paths
+    video_input = f"/Volumes/media-archiver/{'/'.join(video_url.split('/')[-3:])}"
+    audio_input = f"/Volumes/media-archiver/{'/'.join(audio_url.split('/')[-3:])}" if audio_url else None
+    output_path = f"/Volumes/media-archiver/MediaStudioSavedClips/{clip_name}.mp4"
+    clip_folder = f"/Volumes/media-archiver/MediaStudioSavedClips/{clip_name}/"
+    os.makedirs(clip_folder, exist_ok=True)
+    output_path = os.path.join(clip_folder, f"{clip_name}.mp4")
+
+    try:
+        # Build ffmpeg command based on presence of audio_url
+        if audio_url:
+            command = [
+                "ffmpeg", "-i", video_input, "-i", audio_input,
+                "-ss", str(start_time), "-to", str(end_time),
+                "-c:v", "copy", "-c:a", "aac", "-map", "0:v:0", "-map", "1:a:0",
+                output_path
+            ]
+        else:
+            command = [
+                "ffmpeg", "-i", video_input,
+                "-ss", str(start_time), "-to", str(end_time),
+                "-c:v", "copy", "-an", output_path
+            ]
+
+        # Execute ffmpeg command
+        print("Running command:", " ".join(command))  # Debug log
+        subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+
+        # Create metadata
+        metadata = {
+            "id": clip_name,
+            "title": clip_name,
+            "duration": end_time - start_time,
+            "uploader": "local_user",
+            "upload_date": datetime.now().strftime("%Y-%m-%d"),
+            "thumbnail": None,
+            "original_audio_source": audio_input,
+            "original_video_source": video_input,
+            "best_format": {
+                "format_id": None,  # Populate based on actual data
+                "filesize": os.path.getsize(output_path),
+                "ext": "mp4",
+                "resolution": None,  # Populate based on actual data
+                "fps": None  # Populate based on actual data
+            }
+        }
+
+        # Save metadata to a file
+        metadata_path = f"{clip_folder}clip_name_metadata.json"
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=4)
+
+        return jsonify({"message": "Clip saved successfully", "path": output_path})
+    except subprocess.CalledProcessError as e:
+        print("Error running ffmpeg:", e.stderr.decode())  # Debug log
+        return jsonify({"error": e.stderr.decode()}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
