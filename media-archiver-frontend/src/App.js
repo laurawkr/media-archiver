@@ -15,7 +15,8 @@ const App = () => {
     const [editedMetadata, setEditedMetadata] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0); 
     const [isUploading, setIsUploading] = useState(false);
-    const [mediaStudioActive, setMediaStudioActive] = useState(false);  
+    const [mediaStudioActive, setMediaStudioActive] = useState(false);
+    const [repeat, setRepeat] = useState(false);  
 
     useEffect(() => {
         const socket = io("http://localhost:5000/progress");
@@ -225,9 +226,9 @@ const App = () => {
                 ) : (
                     <div className="media-viewers">
                         {selectedMedia?.media_url.includes('/TikTok/') ? (
-                            <VerticalMediaViewer media={selectedMedia} />
+                            <VerticalMediaViewer media={selectedMedia} repeat={repeat} />
                         ) : (
-                            <StandardMediaViewer media={selectedMedia} />
+                            <StandardMediaViewer media={selectedMedia} repeat={repeat} />
                         )}
                         <button
                             onClick={() => {
@@ -239,7 +240,7 @@ const App = () => {
                         </button>
                     </div>
                 )}
-                
+
                 {/* Search Container */}
                 <div className="search-container">
                     {/* Search Input */}
