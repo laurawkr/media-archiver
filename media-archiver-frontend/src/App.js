@@ -194,6 +194,7 @@ const App = () => {
                                 </li>
                             )}
                         </ul>
+                        {/*  
                         {isEditing ? (
                             <div>
                                 <button onClick={handleSaveClick}>Save</button>
@@ -203,6 +204,7 @@ const App = () => {
                             <button onClick={handleEditClick}>Edit Metadata</button>
 
                         )}
+                        */}
 
                     </div>
                 )}
