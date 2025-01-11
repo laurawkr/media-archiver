@@ -202,14 +202,7 @@ const App = () => {
                             <button onClick={handleEditClick}>Edit Metadata</button>
 
                         )}
-                        <button
-                                onClick={() => {
-                                    console.log("Open Media Studio clicked");
-                                    setMediaStudioActive(true);
-                                }}
-                        >
-                                Open Media Studio
-                        </button>
+
                     </div>
                 )}
 
@@ -220,26 +213,33 @@ const App = () => {
                     </div>
                 )}
 
-                {/* Media Studio Section */}
-                {selectedMedia && mediaStudioActive && (
+                {mediaStudioActive ? (
                     <MediaStudio 
                         selectedMedia={selectedMedia}
                         onMediaSave={(savedMedia) => {
                             console.log("Media saved:", savedMedia);
-                            setMediaStudioActive(false);
+                            setMediaStudioActive(false); // Close Media Studio
                         }}
+                        onClose={() => setMediaStudioActive(false)} // Close Media Studio when X is clicked
                     />
+                ) : (
+                    <div className="media-viewers">
+                        {selectedMedia?.media_url.includes('/TikTok/') ? (
+                            <VerticalMediaViewer media={selectedMedia} />
+                        ) : (
+                            <StandardMediaViewer media={selectedMedia} />
+                        )}
+                        <button
+                            onClick={() => {
+                                console.log("Open Media Studio clicked");
+                                setMediaStudioActive(true); // Open Media Studio
+                            }}
+                        >
+                            Open Media Studio
+                        </button>
+                    </div>
                 )}
-
-                {/* Media Viewer */}
-                <div className="media-viewers">
-                    {selectedMedia?.media_url.includes('/TikTok/') ? (
-                        <VerticalMediaViewer media={selectedMedia} />
-                    ) : (
-                        <StandardMediaViewer media={selectedMedia} />
-                    )}
-                </div>
-
+                
                 {/* Search Container */}
                 <div className="search-container">
                     {/* Search Input */}
