@@ -22,6 +22,7 @@ const App = () => {
     const [username, setUsername] = useState("");
     const [includePosts, setIncludePosts] = useState(true);
     const [includeReposts, setIncludeReposts] = useState(false);
+    const [activeTab, setActiveTab] = useState("URLDownload"); // Default tab
   
 
     useEffect(() => {
@@ -120,6 +121,57 @@ const App = () => {
             <button onClick={updateRootPath}>Save</button>
         </div>
     );
+
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case "Settings":
+                return renderSettings();
+            case "DownloadByUsername":
+                return (
+                    <div className="settings-container">
+                        <h2>Download TikTok Videos</h2>
+                        <label>
+                            Username:
+                            <input
+                                type="text"
+                                placeholder="Enter TikTok username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                            />
+                        </label>
+                        <button onClick={handleDownloadByUsername}>Download</button>
+                    </div>
+                );
+            case "LocalUpload":
+                return (
+                    <div className="upload-container">
+                        {isUploading ? (
+                            <div className="progress-bar">
+                                <div
+                                    className="progress-bar-fill"
+                                    style={{ width: `${uploadProgress}%` }}
+                                ></div>
+                                <span>{Math.round(uploadProgress)}%</span>
+                            </div>
+                        ) : (
+                            <label htmlFor="local-upload" className="local-upload-label">
+                                Select File
+                                <input
+                                    id="local-upload"
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    className="local-upload-input"
+                                />
+                            </label>
+                        )}
+                    </div>
+                );
+            case "URLDownload":
+                return <URLInput onSubmit={() => fetchMediaList()} />;
+            default:
+                return null;
+        }
+    };
     
     const fetchMediaList = async () => {
         try {
@@ -171,72 +223,37 @@ const App = () => {
     return (
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
-            <button
-    onClick={() => setShowDownloadByUsername(!showDownloadByUsername)}
-    className="settings-toggle-button"
->
-    {showDownloadByUsername ? "Exit" : "Download Videos by Username"}
-</button>
+            
 
-        {showDownloadByUsername && (
-            <div className="settings-container">
-                <h2>Download TikTok Videos</h2>
-                <label>
-                    Username:
-                    <input
-                        type="text"
-                        placeholder="Enter TikTok username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                </label>
-                <button onClick={handleDownloadByUsername}>Download</button>
-            </div>
-        )}
-            <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="settings-toggle-button"
-            >
-                {showSettings ? "Exit" : "Settings"}
-            </button>
-            {showSettings ? (
-                <div className="settings-container">
-                    <h2>Settings</h2>
-                    <label>
-                        Root Storage Location:
-                        <input
-                            type="text"
-                            value={rootPath}
-                            onChange={(e) => setRootPath(e.target.value)}
-                            placeholder="Enter new root path"
-                        />
-                    </label>
-                    <button onClick={updateRootPath}>Save</button>
-                </div>
-            ) : (
+            
+                <nav className="navigation-bar">
+                    <button
+                        className={`nav-button ${activeTab === "Settings" ? "active" : ""}`}
+                        onClick={() => setActiveTab("Settings")}
+                    >
+                        Settings
+                    </button>
+                    <button
+                        className={`nav-button ${activeTab === "DownloadByUsername" ? "active" : ""}`}
+                        onClick={() => setActiveTab("DownloadByUsername")}
+                    >
+                        Download Videos By Username
+                    </button>
+                    <button
+                        className={`nav-button ${activeTab === "LocalUpload" ? "active" : ""}`}
+                        onClick={() => setActiveTab("LocalUpload")}
+                    >
+                        Local Upload
+                    </button>
+                    <button
+                        className={`nav-button ${activeTab === "URLDownload" ? "active" : ""}`}
+                        onClick={() => setActiveTab("URLDownload")}
+                    >
+                        URL Download
+                    </button>
+                </nav>
+                {renderTabContent()}
                 <div>
-                    <URLInput onSubmit={() => fetchMediaList()} />
-                    <div className="upload-container">
-                        {isUploading ? (
-                            <div className="progress-bar">
-                                <div
-                                    className="progress-bar-fill"
-                                    style={{ width: `${uploadProgress}%` }}
-                                ></div>
-                                <span>{Math.round(uploadProgress)}%</span>
-                            </div>
-                        ) : (
-                            <label htmlFor="local-upload" className="local-upload-label">
-                                Local Upload
-                                <input
-                                    id="local-upload"
-                                    type="file"
-                                    onChange={handleFileUpload}
-                                    className="local-upload-input"
-                                />
-                            </label>
-                        )}
-                    </div>
                     <div className="main-content">
                         {/* Metadata Panel */}
                         {selectedMedia && (
@@ -361,7 +378,6 @@ const App = () => {
                         </div>
                     </div>
                 </div>
-            )}
         </div>
     );    
 };
