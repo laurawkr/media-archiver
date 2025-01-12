@@ -16,7 +16,7 @@ const MediaCard = ({ metadata, onMediaSelect }) => {
                 />
             )}
             <h3 className="text-lg font-bold mt-2">
-            {title.length > 100 ? `${title.substring(0, 100)}...` : title}
+            {title.length > 50 ? `${title.substring(0, 50)}...` : title}
             </h3>
             <p>{uploader}</p>
             <p>{upload_date}</p>

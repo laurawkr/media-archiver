@@ -16,7 +16,13 @@ const App = () => {
     const [uploadProgress, setUploadProgress] = useState(0); 
     const [isUploading, setIsUploading] = useState(false);
     const [mediaStudioActive, setMediaStudioActive] = useState(false);
-    const [repeat, setRepeat] = useState(false);  
+    const [showSettings, setShowSettings] = useState(false); 
+    const [rootPath, setRootPath] = useState("");
+    const [showDownloadByUsername, setShowDownloadByUsername] = useState(false);
+    const [username, setUsername] = useState("");
+    const [includePosts, setIncludePosts] = useState(true);
+    const [includeReposts, setIncludeReposts] = useState(false);
+  
 
     useEffect(() => {
         const socket = io("http://localhost:5000/progress");
@@ -25,6 +31,50 @@ const App = () => {
         });
         return () => socket.disconnect();
     }, []);
+
+    const handleDownloadByUsername = async () => {
+        if (!username) {
+            alert("Please enter a username.");
+            return;
+        }
+    
+        try {
+            const response = await fetch("http://localhost:5000/process-username", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username,
+                    includePosts,
+                    includeReposts,
+                }),
+            });
+    
+            const result = await response.json();
+            alert(result.message || "Download started.");
+        } catch (error) {
+            console.error("Error downloading videos:", error);
+            alert("Failed to start download.");
+        }
+    };
+
+    const updateRootPath = async () => {
+        if (!rootPath) return alert("Please enter a valid path.");
+        try {
+            const response = await fetch("http://localhost:5000/update-root", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ root_path: rootPath }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+            } else {
+                alert(result.error || "Failed to update root path.");
+            }
+        } catch (error) {
+            console.error("Error updating root path:", error);
+        }
+    };    
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
@@ -55,6 +105,22 @@ const App = () => {
         }
     };
 
+    const renderSettings = () => (
+        <div className="settings-container">
+            <h2>Settings</h2>
+            <label>
+                Root Storage Location:
+                <input
+                    type="text"
+                    value={rootPath}
+                    onChange={(e) => setRootPath(e.target.value)}
+                    placeholder="Enter new root path"
+                />
+            </label>
+            <button onClick={updateRootPath}>Save</button>
+        </div>
+    );
+    
     const fetchMediaList = async () => {
         try {
             const response = await fetch('http://localhost:5000/list-media');
@@ -105,160 +171,199 @@ const App = () => {
     return (
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
-            <URLInput onSubmit={() => fetchMediaList()} />
-            <div className="upload-container">
-                {isUploading ? (
-                    <div className="progress-bar">
-                        <div
-                            className="progress-bar-fill"
-                            style={{ width: `${uploadProgress}%` }}
-                        ></div>
-                        <span>{Math.round(uploadProgress)}%</span>
-                    </div>
-                ) : (
-                    <label htmlFor="local-upload" className="local-upload-label">
-                        Local Upload
+            <button
+    onClick={() => setShowDownloadByUsername(!showDownloadByUsername)}
+    className="settings-toggle-button"
+>
+    {showDownloadByUsername ? "Exit" : "Download Videos by Username"}
+</button>
+
+        {showDownloadByUsername && (
+            <div className="settings-container">
+                <h2>Download TikTok Videos</h2>
+                <label>
+                    Username:
+                    <input
+                        type="text"
+                        placeholder="Enter TikTok username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                </label>
+                <button onClick={handleDownloadByUsername}>Download</button>
+            </div>
+        )}
+            <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="settings-toggle-button"
+            >
+                {showSettings ? "Exit" : "Settings"}
+            </button>
+            {showSettings ? (
+                <div className="settings-container">
+                    <h2>Settings</h2>
+                    <label>
+                        Root Storage Location:
                         <input
-                            id="local-upload"
-                            type="file"
-                            onChange={handleFileUpload}
-                            className="local-upload-input"
+                            type="text"
+                            value={rootPath}
+                            onChange={(e) => setRootPath(e.target.value)}
+                            placeholder="Enter new root path"
                         />
                     </label>
-                )}
-            </div>
-            <div className="main-content">
-                {/* Metadata Panel */}
-                {selectedMedia && (
-                    <div className="metadata-display">
-                        <img
-                            src={selectedMedia.thumbnail}
-                            alt={selectedMedia.title}
-                            className="metadata-thumbnail"
-                        />
-                        <h2>
-                            {isEditing ? (
+                    <button onClick={updateRootPath}>Save</button>
+                </div>
+            ) : (
+                <div>
+                    <URLInput onSubmit={() => fetchMediaList()} />
+                    <div className="upload-container">
+                        {isUploading ? (
+                            <div className="progress-bar">
+                                <div
+                                    className="progress-bar-fill"
+                                    style={{ width: `${uploadProgress}%` }}
+                                ></div>
+                                <span>{Math.round(uploadProgress)}%</span>
+                            </div>
+                        ) : (
+                            <label htmlFor="local-upload" className="local-upload-label">
+                                Local Upload
                                 <input
-                                    value={editedMetadata.title}
-                                    onChange={(e) => handleInputChange('title', e.target.value)}
+                                    id="local-upload"
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    className="local-upload-input"
                                 />
-                            ) : (
-                                selectedMedia.title
-                            )}
-                        </h2>
-                        <ul>
-                            {Object.keys(selectedMedia).map((key) =>
-                                key !== 'thumbnail' &&
-                                key !== 'title' &&
-                                key !== 'comments' &&
-                                key !== 'best_format' ? (
-                                    <li key={key}>
-                                        <strong>{key}:</strong>{' '}
-                                        {isEditing ? (
-                                            <input
-                                                value={editedMetadata[key]}
-                                                onChange={(e) => handleInputChange(key, e.target.value)}
-                                            />
-                                        ) : (
-                                            selectedMedia[key]
-                                        )}
-                                    </li>
-                                ) : null
-                            )}
-                            {selectedMedia.best_format && (
-                                <li>
-                                    <strong>Best Format:</strong>
-                                    <ul>
-                                        {Object.entries(selectedMedia.best_format).map(([subKey, subValue]) => (
-                                            <li key={subKey}>
-                                                <strong>{subKey}:</strong>{' '}
+                            </label>
+                        )}
+                    </div>
+                    <div className="main-content">
+                        {/* Metadata Panel */}
+                        {selectedMedia && (
+                            <div className="metadata-display">
+                                <img
+                                    src={selectedMedia.thumbnail}
+                                    alt={selectedMedia.title}
+                                    className="metadata-thumbnail"
+                                />
+                                <h2>
+                                    {isEditing ? (
+                                        <input
+                                            value={editedMetadata.title}
+                                            onChange={(e) => handleInputChange('title', e.target.value)}
+                                        />
+                                    ) : (
+                                        selectedMedia.title
+                                    )}
+                                </h2>
+                                <ul>
+                                    {Object.keys(selectedMedia).map((key) =>
+                                        key !== 'thumbnail' &&
+                                        key !== 'title' &&
+                                        key !== 'comments' &&
+                                        key !== 'best_format' ? (
+                                            <li key={key}>
+                                                <strong>{key}:</strong>{' '}
                                                 {isEditing ? (
                                                     <input
-                                                        value={editedMetadata.best_format[subKey]}
+                                                        value={editedMetadata[key]}
                                                         onChange={(e) =>
-                                                            setEditedMetadata((prev) => ({
-                                                                ...prev,
-                                                                best_format: {
-                                                                    ...prev.best_format,
-                                                                    [subKey]: e.target.value,
-                                                                },
-                                                            }))
+                                                            handleInputChange(key, e.target.value)
                                                         }
                                                     />
                                                 ) : (
-                                                    subValue
+                                                    selectedMedia[key]
                                                 )}
                                             </li>
-                                        ))}
-                                    </ul>
-                                </li>
-                            )}
-                        </ul>
-                        {/*  
-                        {isEditing ? (
-                            <div>
-                                <button onClick={handleSaveClick}>Save</button>
-                                <button onClick={handleCancelClick}>Cancel</button>
+                                        ) : null
+                                    )}
+                                    {selectedMedia.best_format && (
+                                        <li>
+                                            <strong>Best Format:</strong>
+                                            <ul>
+                                                {Object.entries(selectedMedia.best_format).map(
+                                                    ([subKey, subValue]) => (
+                                                        <li key={subKey}>
+                                                            <strong>{subKey}:</strong>{' '}
+                                                            {isEditing ? (
+                                                                <input
+                                                                    value={
+                                                                        editedMetadata.best_format[subKey]
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        setEditedMetadata((prev) => ({
+                                                                            ...prev,
+                                                                            best_format: {
+                                                                                ...prev.best_format,
+                                                                                [subKey]: e.target.value,
+                                                                            },
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            ) : (
+                                                                subValue
+                                                            )}
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </li>
+                                    )}
+                                </ul>
                             </div>
-                        ) : (
-                            <button onClick={handleEditClick}>Edit Metadata</button>
-
                         )}
-                        */}
-
-                    </div>
-                )}
-
-                {/* Comments Scroller */}
-                {selectedMedia && (
-                    <div className="comments-section">
-                        <CommentsSection comments={selectedMedia.comments || []} />
-                    </div>
-                )}
-
-                {mediaStudioActive ? (
-                    <MediaStudio 
-                        selectedMedia={selectedMedia}
-                        onMediaSave={(savedMedia) => {
-                            console.log("Media saved:", savedMedia);
-                            setMediaStudioActive(false); // Close Media Studio
-                        }}
-                        onClose={() => setMediaStudioActive(false)} // Close Media Studio when X is clicked
-                    />
-                ) : (
-                    <div className="media-viewers">
-                        {selectedMedia?.media_url.includes('/TikTok/') ? (
-                            <VerticalMediaViewer media={selectedMedia} repeat={repeat} />
-                        ) : (
-                            <StandardMediaViewer media={selectedMedia} repeat={repeat} />
+    
+                        {/* Comments Scroller */}
+                        {selectedMedia && (
+                            <div className="comments-section">
+                                <CommentsSection 
+                                    comments={selectedMedia.comments || []} 
+                                    tiktokUrl={selectedMedia.source_url} // Pass the source_url
+                                />
+                            </div>
                         )}
-                        <button
-                            onClick={() => {
-                                console.log("Open Media Studio clicked");
-                                setMediaStudioActive(true); // Open Media Studio
-                            }}
-                        >
-                            Open Media Studio
-                        </button>
-                    </div>
-                )}
 
-                {/* Search Container */}
-                <div className="search-container">
-                    {/* Search Input */}
-                    
-                        
-                    {/* Search Results */}
-                    <div className="search-results">
-                        <MediaLibrary
-                        mediaList={mediaList}
-                        onMediaSelect={(media) => setSelectedMedia(media)}
-                        />
+                        {mediaStudioActive ? (
+                            <MediaStudio
+                                selectedMedia={selectedMedia}
+                                onMediaSave={(savedMedia) => {
+                                    console.log("Media saved:", savedMedia);
+                                    setMediaStudioActive(false); // Close Media Studio
+                                }}
+                                onClose={() => setMediaStudioActive(false)} // Close Media Studio when X is clicked
+                            />
+                        ) : (
+                            <div className="media-viewers">
+                                {selectedMedia?.media_url.includes('/TikTok/') ? (
+                                    <VerticalMediaViewer media={selectedMedia} />
+                                ) : (
+                                    <StandardMediaViewer media={selectedMedia} />
+                                )}
+                                <button
+                                    onClick={() => {
+                                        console.log("Open Media Studio clicked");
+                                        setMediaStudioActive(true); // Open Media Studio
+                                    }}
+                                >
+                                    Open Media Studio
+                                </button>
+                            </div>
+                        )}
+    
+                        {/* Search Container */}
+                        <div className="search-container">
+                            <div className="search-results">
+                                <MediaLibrary
+                                    mediaList={mediaList}
+                                    onMediaSelect={(media) => setSelectedMedia(media)}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
-    );
+    );    
 };
 
 export default App;
