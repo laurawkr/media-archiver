@@ -55,29 +55,36 @@ def extract_tiktok_metadata(video_url, output_folder="/Volumes/media-archiver/Ti
             "comments": raw_metadata.get("comments", [])
         }
 
+
+
         # Create a dedicated folder for this video
         video_id = raw_metadata["id"]
         video_folder = os.path.join(output_folder, sanitize_filename(video_id))
-        os.makedirs(video_folder, exist_ok=True)
+        if os.path.exists(video_folder):
+            logging.info(f"Folder already exists for video ID {video_id}: {video_folder}. Skipping the rest.")
+            return
+        else:
+            os.makedirs(video_folder, exist_ok=True)
 
-        # Save refined metadata to a file
-        metadata_filename = os.path.join(video_folder, f"{sanitize_filename(video_id)}_metadata.json")
-        with open(metadata_filename, "w") as metadata_file:
-            json.dump(refined_metadata, metadata_file, indent=4)
+            # Save refined metadata to a file
+            metadata_filename = os.path.join(video_folder, f"{sanitize_filename(video_id)}_metadata.json")
 
-        logging.info(f"Metadata and comments saved: {metadata_filename}")
+            with open(metadata_filename, "w") as metadata_file:
+                json.dump(refined_metadata, metadata_file, indent=4)
+            logging.info(f"Metadata and comments saved: {metadata_filename}")
 
-        # Download video
-        best_format_id = refined_metadata["best_format"]["format_id"]
-        video_path = os.path.join(video_folder, sanitize_filename(raw_metadata["title"]) + ".mp4")
-        download_command = [
-            "yt-dlp",
-            "-f", best_format_id,
-            video_url,
-            "-o", video_path
-        ]
-        subprocess.run(download_command, check=True)
-        logging.info(f"Video downloaded: {video_path}")
+            # Download video
+            best_format_id = refined_metadata["best_format"]["format_id"]
+            video_path = os.path.join(video_folder, sanitize_filename(raw_metadata["title"]) + ".mp4")
+
+            download_command = [
+                "yt-dlp",
+                "-f", best_format_id,
+                video_url,
+                "-o", video_path
+            ]
+            subprocess.run(download_command, check=True)
+            logging.info(f"Video downloaded: {video_path}")
 
     except subprocess.CalledProcessError as e:
         logging.error(f"Error occurred: {e.stderr}")

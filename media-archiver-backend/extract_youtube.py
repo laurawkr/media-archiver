@@ -3,12 +3,22 @@ import subprocess
 import json
 import re
 import sys
+import requests
 
 def sanitize_filename(filename):
     """Sanitize file names to ensure compatibility across file systems."""
     return re.sub(r'[^\w\-_\. ]', '_', filename)
 
-def extract_youtube_metadata(video_url, output_folder="/Volumes/media-archiver/YouTube"):
+def get_media_folder():
+    response = requests.get("http://localhost:5000/get-root")
+    if response.ok:
+        return os.path.join(response.json()["root_path"], "YouTube")
+    else:
+        raise Exception("Failed to fetch MEDIA_FOLDER from the backend")
+
+output_folder = get_media_folder()
+
+def extract_youtube_metadata(video_url, output_folder = get_media_folder()):
     """Extract metadata, save it, and download the best video format."""
     os.makedirs(output_folder, exist_ok=True)
 

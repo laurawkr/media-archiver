@@ -117,6 +117,28 @@ def serve_file(source, item, filename):
         return send_from_directory(os.path.dirname(file_path), os.path.basename(file_path))
     else:
         return jsonify({"error": "File not found"}), 404
+    
+@app.route('/get-root', methods=['GET'])
+def get_root():
+    """Endpoint to return the current MEDIA_FOLDER value."""
+    return jsonify({"root_path": MEDIA_FOLDER}), 200
+
+    
+@app.route('/update-root', methods=['POST'])
+def update_root():
+    """
+    Endpoint to update the root storage location.
+    """
+    global MEDIA_FOLDER
+    data = request.json
+    new_path = data.get('root_path')
+
+    if not new_path or not os.path.exists(new_path):
+        return jsonify({"error": "Invalid path or path does not exist."}), 400
+
+    MEDIA_FOLDER = new_path
+    return jsonify({"message": "Root storage location updated successfully.", "new_root": MEDIA_FOLDER}), 200
+
 
 @app.route('/update-metadata', methods=['POST'])
 def update_metadata():
@@ -320,6 +342,45 @@ def save_clip():
         return jsonify({"error": str(e)}), 500
     
 
+    
+@app.route('/process-username', methods=['POST'])
+def process_username():
+    data = request.json
+    username = data.get("username")
+
+    if not username:
+        return jsonify({"error": "Username is required."}), 400
+
+    try:
+        # Capture output from the script to get URLs
+        result = subprocess.run(
+            ["python3", "extract_liked_urls.py", username],
+            capture_output=True, text=True, check=True
+        )
+        urls = result.stdout.splitlines()
+        urls = [url.strip() for url in urls if url.startswith("http")]
+                # Filter empty lines and URLs if needed
+
+        if not urls:
+            return jsonify({"error": "No videos found for this username."}), 404
+
+        # Process each URL
+        for url in urls:
+            subprocess.run(["python3", "extract_tiktok.py", url], check=True)
+
+        return jsonify({"message": "Processed videos.", "output": result.stdout})
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error in process_username: {e.stderr}")
+        return jsonify({"error": f"Failed to process username: {e.stderr}"}), 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+    
+
 if __name__ == "__main__":
+    MEDIA_FOLDER = "/Volumes/media-archiver"  #default location
     app.run(host="0.0.0.0", port=5000, debug=True)
 
