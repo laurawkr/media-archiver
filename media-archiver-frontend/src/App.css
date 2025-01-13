@@ -97,6 +97,7 @@ h1 {
 .search-container {
   position: sticky; /* Keep the search bar fixed */
   top: 0;
+  flex-direction: column;
   z-index: 10;
   background-color: #f9f9f9;
   padding: 10px 0;
@@ -434,4 +435,110 @@ img {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+.tag-container {
+  display: flex;
+  gap: 8px; /* Adds space between tags */
+  flex-wrap: wrap; /* Wrap tags to the next line if they overflow */
+  margin: 10px 0;
+}
+
+.tag-badge {
+  background-color: #f0f0f0; /* Light grey background */
+  color: #333; /* Dark text */
+  padding: 5px 10px; /* Inner padding for spacing */
+  border-radius: 15px; /* Rounded edges */
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tag-badge:hover {
+  background-color: #e0e0e0; /* Slightly darker grey on hover */
+}
+.selected-tags-container {
+  display: flex;
+  gap: 8px; /* Space between tags */
+  margin-bottom: 10px; /* Space between tags and search bar */
+  flex-direction: row;
+  flex-wrap: wrap; /* Allow tags to wrap to the next line */
+}
+
+.selected-tag {
+  background-color: #e0f7fa; /* Light background */
+  color: #0056b3; /* Blue text */
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: default;
+}
+
+.remove-tag {
+  font-size: 16px;
+  color: #ff0000;
+  cursor: pointer;
+}
+
+.remove-tag:hover {
+  color: #ff6666;
+}
+
+.media-tags .tag-badge {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.media-tags .tag-badge:hover {
+  background-color: #ddd;
+}
+
+.add-tag-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-tag-input-container {
+  margin-top: 10px;
+}
+
+.add-tag-input {
+  padding: 5px;
+  margin-right: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.save-tag-button, .cancel-tag-button {
+  margin-left: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-tag-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.cancel-tag-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+
 

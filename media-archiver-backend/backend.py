@@ -187,6 +187,8 @@ def update_metadata():
 
         with open(metadata_file, "w") as f:
             json.dump(updated_metadata, f, indent=4)
+            
+        media_list = list_saved_media()
 
         return jsonify({"message": "Metadata updated successfully."})
     except Exception as e:

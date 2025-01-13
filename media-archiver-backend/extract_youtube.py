@@ -4,6 +4,14 @@ import json
 import re
 import sys
 import requests
+import logging
+
+# Set up logging
+logging.basicConfig(
+    filename="yt-dlp_warnings.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 def sanitize_filename(filename):
     """Sanitize file names to ensure compatibility across file systems."""
@@ -26,7 +34,11 @@ def extract_youtube_metadata(video_url, output_folder = get_media_folder()):
         # Fetch metadata
         command = ["yt-dlp", "--dump-json", video_url]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
-        raw_metadata = json.loads(result.stdout)
+        if result.stderr:
+            logging.warning(f"Warnings for {video_url}:\n{result.stderr.strip()}")
+
+        raw_metadata = json.loads(result.stdout.strip())
+        
 
         # Refine metadata
         refined_metadata = {
@@ -42,7 +54,8 @@ def extract_youtube_metadata(video_url, output_folder = get_media_folder()):
                 "ext": raw_metadata["formats"][-1]["ext"],
                 "resolution": raw_metadata["formats"][-1].get("resolution"),
                 "fps": raw_metadata["formats"][-1].get("fps"),
-            }
+            },
+            "tags": ["New", "YouTube"]
         }
 
         # Append comments at the end of metadata

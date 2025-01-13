@@ -52,7 +52,8 @@ def extract_tiktok_metadata(video_url, output_folder="/Volumes/media-archiver/Ti
                 "resolution": raw_metadata["formats"][-1].get("resolution"),
                 "fps": raw_metadata["formats"][-1].get("fps"),
             },
-            "comments": raw_metadata.get("comments", [])
+            "comments": raw_metadata.get("comments", []),
+            "tags": ["New", "Tiktok"]
         }
 
 

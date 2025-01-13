@@ -84,7 +84,8 @@ def download_archive_item(item_id, output_folder="/Volumes/media-archiver/Intern
                         "ext": file["name"].split(".")[-1],
                         "resolution": f"{file.get('width', 0)}x{file.get('height', 0)}",
                         "fps": None,
-                    }
+                    },
+                    "tags": ["New", "InternetArchive"],
                 }
 
                 # Save metadata JSON

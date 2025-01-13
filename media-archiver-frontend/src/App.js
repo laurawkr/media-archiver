@@ -8,15 +8,18 @@ import MediaStudio from './components/MediaStudio';
 import './App.css';
 import { io } from "socket.io-client";
 
+
 const App = () => {
     const [mediaList, setMediaList] = useState([]);
     const [selectedMedia, setSelectedMedia] = useState(null);
+    const [searchTerm, setSearchTerm] = useState(''); 
     const [isEditing, setIsEditing] = useState(false);
     const [editedMetadata, setEditedMetadata] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0); 
     const [isUploading, setIsUploading] = useState(false);
     const [mediaStudioActive, setMediaStudioActive] = useState(false);
-    const [showSettings, setShowSettings] = useState(false); 
+    const [isAddingTag, setIsAddingTag] = useState(false);
+    const [newTag, setNewTag] = useState("");
     const [rootPath, setRootPath] = useState("");
     const [showDownloadByUsername, setShowDownloadByUsername] = useState(false);
     const [username, setUsername] = useState("");
@@ -32,6 +35,44 @@ const App = () => {
         });
         return () => socket.disconnect();
     }, []);
+
+    useEffect(() => {
+        if (selectedMedia) {
+            // Check if the "New" tag exists and remove it
+            const updatedTags = selectedMedia.tags?.filter((tag) => tag !== "New") || [];
+    
+            if (updatedTags.length !== (selectedMedia.tags?.length || 0)) {
+                const updatedMedia = { ...selectedMedia, tags: updatedTags };
+    
+                // Update backend metadata
+                fetch("http://localhost:5000/update-metadata", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updatedMedia),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.message) {
+                            console.log("Updated metadata successfully:", data.message);
+                            setSelectedMedia(updatedMedia); // Update UI
+                        }
+                    })
+                    .catch((error) => console.error("Error updating metadata:", error));
+            }
+        }
+    }, [selectedMedia]);    
+
+    const [selectedTags, setSelectedTags] = useState([]); // Add state to track selected tags
+
+    const addTag = (tag) => {
+        if (!selectedTags.includes(tag)) {
+            setSelectedTags([...selectedTags, tag]);
+        }
+    };
+
+    const removeTag = (tag) => {
+        setSelectedTags(selectedTags.filter((t) => t !== tag));
+    };
 
     const handleDownloadByUsername = async () => {
         if (!username) {
@@ -255,7 +296,7 @@ const App = () => {
                 {renderTabContent()}
                 <div>
                     <div className="main-content">
-                        {/* Metadata Panel */}
+                        {/* Metadata Viewer */}
                         {selectedMedia && (
                             <div className="metadata-display">
                                 <img
@@ -263,16 +304,7 @@ const App = () => {
                                     alt={selectedMedia.title}
                                     className="metadata-thumbnail"
                                 />
-                                <h2>
-                                    {isEditing ? (
-                                        <input
-                                            value={editedMetadata.title}
-                                            onChange={(e) => handleInputChange('title', e.target.value)}
-                                        />
-                                    ) : (
-                                        selectedMedia.title
-                                    )}
-                                </h2>
+                                <h2>{selectedMedia.title}</h2>
                                 <ul>
                                     {Object.keys(selectedMedia).map((key) =>
                                         key !== 'thumbnail' &&
@@ -280,17 +312,7 @@ const App = () => {
                                         key !== 'comments' &&
                                         key !== 'best_format' ? (
                                             <li key={key}>
-                                                <strong>{key}:</strong>{' '}
-                                                {isEditing ? (
-                                                    <input
-                                                        value={editedMetadata[key]}
-                                                        onChange={(e) =>
-                                                            handleInputChange(key, e.target.value)
-                                                        }
-                                                    />
-                                                ) : (
-                                                    selectedMedia[key]
-                                                )}
+                                                <strong>{key}:</strong> {selectedMedia[key]}
                                             </li>
                                         ) : null
                                     )}
@@ -301,25 +323,7 @@ const App = () => {
                                                 {Object.entries(selectedMedia.best_format).map(
                                                     ([subKey, subValue]) => (
                                                         <li key={subKey}>
-                                                            <strong>{subKey}:</strong>{' '}
-                                                            {isEditing ? (
-                                                                <input
-                                                                    value={
-                                                                        editedMetadata.best_format[subKey]
-                                                                    }
-                                                                    onChange={(e) =>
-                                                                        setEditedMetadata((prev) => ({
-                                                                            ...prev,
-                                                                            best_format: {
-                                                                                ...prev.best_format,
-                                                                                [subKey]: e.target.value,
-                                                                            },
-                                                                        }))
-                                                                    }
-                                                                />
-                                                            ) : (
-                                                                subValue
-                                                            )}
+                                                            <strong>{subKey}:</strong> {subValue}
                                                         </li>
                                                     )
                                                 )}
@@ -327,6 +331,75 @@ const App = () => {
                                         </li>
                                     )}
                                 </ul>
+
+                                {/* Tags Section */}
+                                <div className="tag-container">
+                                    {selectedMedia.tags?.length ? (
+                                        selectedMedia.tags.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className={`tag-badge ${
+                                                    selectedTags.includes(tag) ? 'active' : ''
+                                                }`}
+                                                onClick={() =>
+                                                    selectedTags.includes(tag)
+                                                        ? removeTag(tag)
+                                                        : addTag(tag)
+                                                }
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span>No tags available</span>
+                                    )}
+                                    {/* Add Tags Feature */}
+                                    <button
+                                    className="add-tag-button"
+                                    onClick={() => setIsAddingTag(true)}
+                                    >
+                                    Add Tags
+                                    </button>
+                                    {isAddingTag && (
+                                    <div className="add-tag-input-container">
+                                        <input
+                                        type="text"
+                                        placeholder="Enter a tag"
+                                        value={newTag}
+                                        onChange={(e) => setNewTag(e.target.value)}
+                                        className="add-tag-input"
+                                        />
+                                        <button
+                                        className="save-tag-button"
+                                        onClick={async () => {
+                                            if (newTag.trim()) {
+                                            const updatedTags = [...(selectedMedia.tags || []), newTag.trim()];
+                                            const updatedMedia = { ...selectedMedia, tags: updatedTags };
+
+                                            try {
+                                                await fetch('http://localhost:5000/update-metadata', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(updatedMedia),
+                                                });
+                                                setSelectedMedia(updatedMedia); // Update UI
+                                                setIsAddingTag(false);
+                                                setNewTag("");
+                                            } catch (error) {
+                                                console.error('Error saving tag:', error);
+                                                alert('Failed to save tag.');
+                                            }
+                                            }
+                                        }}
+                                        >
+                                        Save
+                                        </button>
+                                        <button className="cancel-tag-button" onClick={() => setIsAddingTag(false)}>
+                                        Cancel
+                                        </button>
+                                    </div>
+                                    )}
+                                </div>
                             </div>
                         )}
     
@@ -366,14 +439,20 @@ const App = () => {
                                 </button>
                             </div>
                         )}
-    
+
+
                         {/* Search Container */}
                         <div className="search-container">
                             <div className="search-results">
-                                <MediaLibrary
-                                    mediaList={mediaList}
-                                    onMediaSelect={(media) => setSelectedMedia(media)}
-                                />
+                            <MediaLibrary
+                                mediaList={mediaList}
+                                onMediaSelect={(media) => setSelectedMedia(media)}
+                                searchTerm={searchTerm}
+                                setSearchTerm={setSearchTerm}
+                                addTag={addTag}
+                                removeTag={removeTag}
+                                selectedTags={selectedTags}
+                            />
                             </div>
                         </div>
                     </div>
