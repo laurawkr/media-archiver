@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'; // Fix: Import hooks
-import MediaCard from './MediaCard'; // Fix: Import MediaCard
+import React, { useState, useEffect } from 'react'; // Import hooks
+import MediaCard from './MediaCard'; // Import MediaCard
 
-const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTags = [], searchTerm, setSearchTerm }) => {
+const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, isDarkMode, selectedTags = [], searchTerm, setSearchTerm }) => {
     const [autoPlay, setAutoPlay] = useState(false);
     const [shuffle, setShuffle] = useState(false);
     const [repeat, setRepeat] = useState(false);
@@ -32,7 +32,6 @@ const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTag
             onMediaSelect(filteredMedia[nextIndex]);
         }
     };
-    
 
     useEffect(() => {
         if (!autoPlay && !shuffle) return;
@@ -44,17 +43,16 @@ const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTag
     }, [autoPlay, shuffle, currentIndex, filteredMedia, onMediaSelect]);
 
     return (
-        <div className="media-library-container">
-
+        <div className={`media-library-container ${isDarkMode ? 'dark-theme' : ''}`}>
             {/* Selected Tags */}
             {selectedTags?.length > 0 && (
-                <div className="selected-tags-container">
+                <div className={`selected-tags-container ${isDarkMode ? 'dark-theme' : ''}`}>
                     {selectedTags.map((tag, index) => (
                         <span key={index} className="selected-tag">
                             {tag}
                             <span
                                 className="remove-tag"
-                                onClick={() => removeTag(tag)} // Fix: Use removeTag prop
+                                onClick={() => removeTag(tag)} // Use removeTag prop
                             >
                                 &times;
                             </span>
@@ -64,23 +62,23 @@ const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTag
             )}
 
             {/* Search Bar */}
-            <div className="search-container">
+            <div className={`search-container ${isDarkMode ? 'dark-theme' : ''}`}>
                 <input
                     type="text"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)} // Fix: Use setSearchTerm prop
+                    onChange={(e) => setSearchTerm(e.target.value)} // Use setSearchTerm prop
                     placeholder="Search media library..."
                     className="search-input"
                 />
                 <div className="control-buttons">
                     <button
-                        className={`control-button ${autoPlay ? 'active' : ''}`}
+                        className={`control-button ${autoPlay ? 'active' : ''} ${isDarkMode ? 'dark-theme' : ''}`}
                         onClick={() => setAutoPlay((prev) => !prev)}
                     >
                         Auto Play
                     </button>
                     <button
-                        className={`control-button ${shuffle ? 'active' : ''}`}
+                        className={`control-button ${shuffle ? 'active' : ''} ${isDarkMode ? 'dark-theme' : ''}`}
                         onClick={() => setShuffle((prev) => !prev)}
                     >
                         Shuffle
@@ -89,8 +87,8 @@ const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTag
             </div>
 
             {/* Media Grid */}
-            <div className="media-grid-container">
-                <div className="media-grid">
+            <div className={`media-grid-container ${isDarkMode ? 'dark-theme' : ''}`}>
+                <div className={`media-grid ${isDarkMode ? 'dark-theme' : ''}`}>
                     {filteredMedia.length > 0 ? (
                         filteredMedia.map((media, index) => (
                             <div key={index}>
@@ -102,13 +100,13 @@ const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTag
                                         setRepeat(false);
                                     }}
                                 />
-                                <div className="tag-container">
+                                <div className={`tag-container ${isDarkMode ? 'dark-theme' : ''}`}>
                                     {media.tags?.length ? (
                                         media.tags.map((tag, idx) => (
                                             <span
                                                 key={idx}
-                                                className="tag-badge"
-                                                onClick={() => addTag(tag)} // Fix: Use addTag prop
+                                                className={`tag-badge ${isDarkMode ? 'dark-theme' : ''}`}
+                                                onClick={() => addTag(tag)} // Use addTag prop
                                             >
                                                 {tag}
                                             </span>

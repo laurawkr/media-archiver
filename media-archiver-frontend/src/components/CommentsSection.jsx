@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CommentsSection = ({ comments, tiktokUrl, refreshComments }) => {
+const CommentsSection = ({ comments, tiktokUrl, refreshComments, isDarkMode }) => {
     // Parse usernames and comments, skipping empty strings
     const formattedComments = [];
     for (let i = 0; i < comments.length; i += 3) {
@@ -30,28 +30,37 @@ const CommentsSection = ({ comments, tiktokUrl, refreshComments }) => {
         }
     };
 
-    // Ensure the return statement is within the function
     return (
-        <div className="comments-section">
-            <div className="comments-header-container">
-                <div className="comments-header">
+        <div className={`comments-section ${isDarkMode ? 'dark-theme' : ''}`}>
+            {/* Header */}
+            <div className={`comments-header-container ${isDarkMode ? 'dark-theme' : ''}`}>
+                <div className={`comments-header ${isDarkMode ? 'dark-theme' : ''}`}>
                     <h3>Comments</h3>
                 </div>
             </div>
+
+            {/* Comments List */}
             {formattedComments.length > 0 ? (
-                <ul className="comments-list">
+                <ul className={`comments-list ${isDarkMode ? 'dark-theme' : ''}`}>
                     {formattedComments.map((comment, index) => (
-                        <li key={index} className="comment">
-                            <span className="comment-username">{comment.username}</span>
-                            <p className="comment-text">{comment.text}</p>
+                        <li key={index} className={`comment ${isDarkMode ? 'dark-theme' : ''}`}>
+                            <span className={`comment-username ${isDarkMode ? 'dark-theme' : ''}`}>
+                                {comment.username}
+                            </span>
+                            <p className={`comment-text ${isDarkMode ? 'dark-theme' : ''}`}>
+                                {comment.text}
+                            </p>
                             <hr />
                         </li>
                     ))}
                 </ul>
             ) : (
-                <div className="no-comments">
+                <div className={`no-comments ${isDarkMode ? 'dark-theme' : ''}`}>
                     <p>No comments available.</p>
-                    <button onClick={handleAddComments}>
+                    <button
+                        className={`add-comments-button ${isDarkMode ? 'dark-theme' : ''}`}
+                        onClick={handleAddComments}
+                    >
                         Add Comments
                     </button>
                 </div>

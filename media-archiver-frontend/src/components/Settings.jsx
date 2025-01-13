@@ -4,18 +4,32 @@ const renderContent = () => {
             return <div>Home Content</div>;
         case "settings":
             return (
-                <div>
+                <div className={`settings-container ${isDarkMode ? 'dark-theme' : ''}`}>
                     <h2>Settings</h2>
-                    <div>
-                        <label>Root Storage Location:</label>
-                        <input
-                            type="text"
-                            value={rootPath}
-                            onChange={(e) => setRootPath(e.target.value)}
-                            placeholder="/path/to/storage"
-                        />
-                        <button onClick={updateRootPath}>Save</button>
-                    </div>
+                    <label>
+                    Dark Mode:
+                    <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>
+                        {isDarkMode ? 'ON' : 'OFF'}
+                    </span>
+                    <input
+                        type="checkbox"
+                        checked={isDarkMode}
+                        onChange={toggleTheme}
+                    />
+                    </label>
+                    <label>
+                    Root Storage Location:
+                    <span style={{ marginLeft: '10px', color: 'grey' }}>
+                        {rootPath || 'No path set'}
+                    </span>
+                    <input
+                        type="text"
+                        value={rootPath}
+                        onChange={(e) => setRootPath(e.target.value)}
+                        placeholder="Enter new root path"
+                    />
+                    </label>
+                    <button onClick={updateRootPath}>Save</button>
                 </div>
             );
         default:

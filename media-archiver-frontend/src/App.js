@@ -26,7 +26,8 @@ const App = () => {
     const [includePosts, setIncludePosts] = useState(true);
     const [includeReposts, setIncludeReposts] = useState(false);
     const [activeTab, setActiveTab] = useState("URLDownload"); // Default tab
-  
+    const [maxScreenWidth, setMaxScreenWidth] = useState(window.screen.width);
+
 
     useEffect(() => {
         const socket = io("http://localhost:5000/progress");
@@ -34,6 +35,16 @@ const App = () => {
             setUploadProgress(data.progress);
         });
         return () => socket.disconnect();
+    }, []);
+
+    useEffect(() => {
+        // Update maxScreenWidth if the window is resized
+        const handleResize = () => {
+          setMaxScreenWidth(window.screen.width);
+        };
+    
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
     }, []);
 
     useEffect(() => {
@@ -68,6 +79,34 @@ const App = () => {
         if (!selectedTags.includes(tag)) {
             setSelectedTags([...selectedTags, tag]);
         }
+    };
+
+    // Fetch the current root path from the backend
+    const fetchRootPath = async () => {
+        try {
+        const response = await fetch("http://localhost:5000/get-root");
+        if (response.ok) {
+            const data = await response.json();
+            setRootPath(data.root_path); // Set the rootPath state
+        } else {
+            console.error("Failed to fetch root path.");
+        }
+        } catch (error) {
+        console.error("Error fetching root path:", error);
+        }
+    };
+
+    // Call fetchRootPath when the component mounts
+    useEffect(() => {
+        fetchRootPath();
+    }, []);
+
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    // Toggle theme
+    const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    document.body.classList.toggle('dark-theme', !isDarkMode);
     };
 
     const removeTag = (tag) => {
@@ -148,21 +187,51 @@ const App = () => {
     };
 
     const renderSettings = () => (
-        <div className="settings-container">
-            <h2>Settings</h2>
-            <label>
-                Root Storage Location:
-                <input
-                    type="text"
-                    value={rootPath}
-                    onChange={(e) => setRootPath(e.target.value)}
-                    placeholder="Enter new root path"
-                />
+        <div className={`settings-container ${isDarkMode ? 'dark-theme' : ''}`}>
+          <h2>Settings</h2>
+          {/* Dark Mode */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+            <label style={{ marginRight: '10px' }}>Dark Mode:</label>
+            <span style={{ fontWeight: 'bold' }}>
+              {isDarkMode ? 'ON' : 'OFF'}
+            </span>
+            <input
+              type="checkbox"
+              checked={isDarkMode}
+              onChange={toggleTheme}
+              style={{ marginRight: '5px' }}
+            />
+          </div>
+      
+          {/* Root Storage Location */}
+          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '10px' }}>
+            <label style={{ marginBottom: '5px' }}>
+              Root Storage Location:
+              <span style={{ marginLeft: '10px', fontStyle: 'italic', color: 'grey' }}>
+                {rootPath || 'No path set'}
+              </span>
             </label>
-            <button onClick={updateRootPath}>Save</button>
+            <input
+              type="text"
+              value={rootPath}
+              onChange={(e) => setRootPath(e.target.value)}
+              placeholder="Enter new root path"
+              style={{
+                padding: '8px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                marginBottom: '5px',
+              }}
+            />
+          </div>
+      
+          {/* Save Button */}
+          <button onClick={updateRootPath} style={{ padding: '10px 20px' }}>
+            Save
+          </button>
         </div>
-    );
-
+      );
+      
     const renderTabContent = () => {
         switch (activeTab) {
             case "Settings":
@@ -263,11 +332,25 @@ const App = () => {
 
     return (
         <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6">Media Archiver</h1>
-            
-
-            
-                <nav className="navigation-bar">
+            <style>
+                {`
+                @media (max-width: ${maxScreenWidth}px) {
+                    body {
+                    transform: scale(0.95);
+                    transform-origin: top left;
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f9f9f9;
+                    color: #333;
+                    }
+                }
+                `}
+            </style>
+            <header className={`page-header ${isDarkMode ? 'dark-theme' : ''}`}>
+                <h1 className="text-4xl font-extrabold mb-6 text-center text-purple-400">Media Archiver</h1>
+            </header>
+                <nav className="navigation-bar ${isDarkMode ? 'dark-theme' : ''}">
                     <button
                         className={`nav-button ${activeTab === "Settings" ? "active" : ""}`}
                         onClick={() => setActiveTab("Settings")}
@@ -298,42 +381,42 @@ const App = () => {
                     <div className="main-content">
                         {/* Metadata Viewer */}
                         {selectedMedia && (
-                            <div className="metadata-display">
-                                <img
-                                    src={selectedMedia.thumbnail}
-                                    alt={selectedMedia.title}
-                                    className="metadata-thumbnail"
-                                />
-                                <h2>{selectedMedia.title}</h2>
-                                <ul>
-                                    {Object.keys(selectedMedia).map((key) =>
-                                        key !== 'thumbnail' &&
-                                        key !== 'title' &&
-                                        key !== 'comments' &&
-                                        key !== 'best_format' ? (
-                                            <li key={key}>
-                                                <strong>{key}:</strong> {selectedMedia[key]}
-                                            </li>
-                                        ) : null
-                                    )}
-                                    {selectedMedia.best_format && (
-                                        <li>
-                                            <strong>Best Format:</strong>
-                                            <ul>
-                                                {Object.entries(selectedMedia.best_format).map(
-                                                    ([subKey, subValue]) => (
-                                                        <li key={subKey}>
-                                                            <strong>{subKey}:</strong> {subValue}
-                                                        </li>
-                                                    )
-                                                )}
-                                            </ul>
+                        <div className={`metadata-display ${isDarkMode ? 'dark-theme' : ''}`}>
+                            <img
+                                src={selectedMedia.thumbnail}
+                                alt={selectedMedia.title}
+                                className="metadata-thumbnail"
+                            />
+                            <h2 className={`metadata-title ${isDarkMode ? 'dark-theme' : ''}`}>
+                                {selectedMedia.title}
+                            </h2>
+                            <ul className="metadata-list">
+                                {Object.keys(selectedMedia).map((key) =>
+                                    key !== 'thumbnail' &&
+                                    key !== 'title' &&
+                                    key !== 'comments' &&
+                                    key !== 'best_format' ? (
+                                        <li key={key} className={`metadata-item ${isDarkMode ? 'dark-theme' : ''}`}>
+                                            <strong className="metadata-key">{key}:</strong> {selectedMedia[key]}
                                         </li>
-                                    )}
-                                </ul>
+                                    ) : null
+                                )}
+                                {selectedMedia.best_format && (
+                                    <li className={`metadata-item ${isDarkMode ? 'dark-theme' : ''}`}>
+                                        <strong className="metadata-key">Best Format:</strong>
+                                        <ul className="metadata-sublist">
+                                            {Object.entries(selectedMedia.best_format).map(([subKey, subValue]) => (
+                                                <li key={subKey} className={`metadata-subitem ${isDarkMode ? 'dark-theme' : ''}`}>
+                                                    <strong className="metadata-subkey">{subKey}:</strong> {subValue}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </li>
+                                )}
+                            </ul>
 
                                 {/* Tags Section */}
-                                <div className="tag-container">
+                                <div className="tag-container ${isDarkMode ? 'dark-theme' : ''}">
                                     {selectedMedia.tags?.length ? (
                                         selectedMedia.tags.map((tag, index) => (
                                             <span
@@ -361,7 +444,7 @@ const App = () => {
                                     Add Tags
                                     </button>
                                     {isAddingTag && (
-                                    <div className="add-tag-input-container">
+                                    <div className="add-tag-input-container ${isDarkMode ? 'dark-theme' : ''}">
                                         <input
                                         type="text"
                                         placeholder="Enter a tag"
@@ -405,8 +488,9 @@ const App = () => {
     
                         {/* Comments Scroller */}
                         {selectedMedia && (
-                            <div className="comments-section">
+                            <div className="comments-section ${isDarkMode ? 'dark-theme' : ''}">
                                 <CommentsSection 
+                                    isDarkMode={isDarkMode}
                                     comments={selectedMedia.comments || []} 
                                     tiktokUrl={selectedMedia.source_url} // Pass the source_url
                                 />
@@ -420,7 +504,8 @@ const App = () => {
                                     console.log("Media saved:", savedMedia);
                                     setMediaStudioActive(false); // Close Media Studio
                                 }}
-                                onClose={() => setMediaStudioActive(false)} // Close Media Studio when X is clicked
+                                onClose={() => setMediaStudioActive(false)}
+                                isDarkMode={isDarkMode} 
                             />
                         ) : (
                             <div className="media-viewers">
@@ -440,10 +525,9 @@ const App = () => {
                             </div>
                         )}
 
-
-                        {/* Search Container */}
-                        <div className="search-container">
-                            <div className="search-results">
+                        {/* Search Container */} 
+                        <div className="search-container ${isDarkMode ? 'dark-theme' : ''}">
+                            <div className="search-results ${isDarkMode ? 'dark-theme' : ''}">
                             <MediaLibrary
                                 mediaList={mediaList}
                                 onMediaSelect={(media) => setSelectedMedia(media)}
@@ -452,6 +536,7 @@ const App = () => {
                                 addTag={addTag}
                                 removeTag={removeTag}
                                 selectedTags={selectedTags}
+                                isDarkMode={isDarkMode}
                             />
                             </div>
                         </div>
