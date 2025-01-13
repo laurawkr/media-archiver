@@ -139,16 +139,15 @@ h1 {
   text-align: center;
   display: flex;
   flex-direction: column;
-  margin-right: 200px;
+  margin-right: 20%;
   align-items: center; /* Center the viewers horizontally */
 }
 
 .viewer-title {
   width: 100%;
-  font-size: 24px; 
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 10px;
   color: #333; 
 }
 
@@ -204,6 +203,7 @@ img {
   position: sticky;
   background-color: #f9f9f9;
   padding: 10px;
+  margin-top: 20px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1; /* Ensure it stays on top */
 }
@@ -216,6 +216,7 @@ img {
 .comments-section {
   width: 60%;
   max-height: 100%; /* Only outer container controls scrolling */
+  margin-top: 20px;
   
 }
 
@@ -267,7 +268,6 @@ img {
   padding: 20px;
   width: 20%; /* Adjust width as needed */
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  margin-right: 20px; /* Add spacing between metadata and video */
 }
 
 .metadata-thumbnail {
@@ -676,7 +676,7 @@ body.dark-theme {
 }
 
 .viewer-title.dark-theme {
-  color: #d1bff4;
+  color: #f8f8f8;
 }
 
 .vertical-viewer.dark-theme,

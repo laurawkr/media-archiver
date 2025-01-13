@@ -334,15 +334,90 @@ const App = () => {
         <div className="p-8">
             <style>
                 {`
-                @media (max-width: ${maxScreenWidth}px) {
-                    body {
-                    transform: scale(0.95);
+                @media (max-width: 1440px) {
+                body {
+                    transform: scale(0.90);
                     transform-origin: top left;
                     font-family: Arial, sans-serif;
                     margin: 0;
                     padding: 0;
                     background-color: #f9f9f9;
                     color: #333;
+                }
+
+                .navigation-bar {
+                    flex-direction: column;
+                    padding: 10px;
+                }
+
+                .comments-section {
+                    width: 100%; /* Make comments section full width */
+                }
+
+                .metadata-display {
+                    font-size: 10px;
+                    width: 10%; /* Make metadata span full width */
+                    word-wrap: break-word; /* Ensure long words break into the next line */
+                    white-space: normal;
+                }
+
+                .metadata-thumbnail {
+                    width: 40%;
+                    border-radius: 8px;
+                    margin-bottom: 10px;
+                }
+
+                .comments-header-container {
+                    position: sticky;
+                    width: 200px;
+                    background-color: #f9f9f9;
+                    padding: 10px;
+                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                    z-index: 1;
+                }
+
+                .viewer-container {
+                    display: flex;
+                    flex-direction: column; /* Stack elements vertically */
+                    justify-content: center;
+                    text-align: center;
+                    margin-right: 0;
+                    align-items: center;
+                }
+
+                .vertical-viewer,
+                .standard-viewer {
+                    display: flex;
+                    flex-direction: column; /* Stack elements vertically */
+                    justify-content: center;
+                    width: 200;
+                    height: auto;
+                    border: 12px solid #13161c;
+                    border-radius: 12px;
+                    margin-top: 10px;
+                }
+                .media-library-container {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            }
+
+                @media (min-width: 1441px) {
+                    body {
+                        transform: scale(1);
+                        transform-origin: top left;
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #ffffff;
+                        color: #000;
+                    }
+                    .navigation-bar {
+                        flex-direction: row;
+                        padding: 20px;
                     }
                 }
                 `}
@@ -510,9 +585,11 @@ const App = () => {
                         ) : (
                             <div className="media-viewers">
                                 {selectedMedia?.media_url.includes('/TikTok/') ? (
-                                    <VerticalMediaViewer media={selectedMedia} />
+                                    <VerticalMediaViewer media={selectedMedia}
+                                    isDarkMode={isDarkMode} />
                                 ) : (
-                                    <StandardMediaViewer media={selectedMedia} />
+                                    <StandardMediaViewer media={selectedMedia}
+                                    isDarkMode={isDarkMode} />
                                 )}
                                 <button
                                     onClick={() => {
