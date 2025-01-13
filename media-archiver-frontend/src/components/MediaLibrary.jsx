@@ -1,22 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import MediaCard from './MediaCard';
+import React, { useState, useEffect } from 'react'; // Fix: Import hooks
+import MediaCard from './MediaCard'; // Fix: Import MediaCard
 
-const MediaLibrary = ({ mediaList, onMediaSelect }) => {
-    const [searchTerm, setSearchTerm] = useState('');
+const MediaLibrary = ({ mediaList, onMediaSelect, addTag, removeTag, selectedTags = [], searchTerm, setSearchTerm }) => {
     const [autoPlay, setAutoPlay] = useState(false);
     const [shuffle, setShuffle] = useState(false);
     const [repeat, setRepeat] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    // Filter media based on search term
-    const filteredMedia = mediaList.filter((media) =>
-        Object.values(media)
+    // Filter media based on search term and selected tags
+    const filteredMedia = mediaList.filter((media) => {
+        const matchesSearchTerm = Object.values(media)
             .join(' ')
             .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-    );
+            .includes(searchTerm.toLowerCase());
 
-    // Play the next video based on autoPlay or shuffle
+        const matchesTags = selectedTags.length
+            ? selectedTags.every((tag) => media.tags?.includes(tag))
+            : true;
+
+        return matchesSearchTerm && matchesTags;
+    });
+
     const playNext = () => {
         if (shuffle) {
             const randomIndex = Math.floor(Math.random() * filteredMedia.length);
@@ -28,8 +32,8 @@ const MediaLibrary = ({ mediaList, onMediaSelect }) => {
             onMediaSelect(filteredMedia[nextIndex]);
         }
     };
+    
 
-    // Handle Auto Play and Shuffle
     useEffect(() => {
         if (!autoPlay && !shuffle) return;
 
@@ -39,63 +43,45 @@ const MediaLibrary = ({ mediaList, onMediaSelect }) => {
         return () => clearTimeout(timer);
     }, [autoPlay, shuffle, currentIndex, filteredMedia, onMediaSelect]);
 
-    // Handle Repeat functionality
-    useEffect(() => {
-        const videoElement = document.querySelector(`#video-${currentIndex}`);
-        if (!videoElement) return;
-    
-        const handleEnded = () => {
-            if (repeat) {
-                videoElement.currentTime = 0; // Reset video to the start
-                videoElement.play(); // Replay video
-            }
-        };
-    
-        videoElement.addEventListener('ended', handleEnded);
-        return () => videoElement.removeEventListener('ended', handleEnded);
-    }, [repeat, currentIndex]);
-    
-
-    // Button handlers
-    const handleAutoPlay = () => {
-        setAutoPlay((prev) => !prev);
-        setShuffle(false);
-        setRepeat(false);
-    };
-
-    const handleShuffle = () => {
-        setShuffle((prev) => !prev);
-        setAutoPlay(false);
-        setRepeat(false);
-    };
-
-    const handleRepeat = () => {
-        setRepeat((prev) => !prev);
-        setAutoPlay(false);
-        setShuffle(false);
-    };
-
     return (
         <div className="media-library-container">
+
+            {/* Selected Tags */}
+            {selectedTags?.length > 0 && (
+                <div className="selected-tags-container">
+                    {selectedTags.map((tag, index) => (
+                        <span key={index} className="selected-tag">
+                            {tag}
+                            <span
+                                className="remove-tag"
+                                onClick={() => removeTag(tag)} // Fix: Use removeTag prop
+                            >
+                                &times;
+                            </span>
+                        </span>
+                    ))}
+                </div>
+            )}
+
             {/* Search Bar */}
             <div className="search-container">
                 <input
                     type="text"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => setSearchTerm(e.target.value)} // Fix: Use setSearchTerm prop
                     placeholder="Search media library..."
                     className="search-input"
                 />
                 <div className="control-buttons">
                     <button
                         className={`control-button ${autoPlay ? 'active' : ''}`}
-                        onClick={handleAutoPlay}
+                        onClick={() => setAutoPlay((prev) => !prev)}
                     >
                         Auto Play
                     </button>
                     <button
                         className={`control-button ${shuffle ? 'active' : ''}`}
-                        onClick={handleShuffle}
+                        onClick={() => setShuffle((prev) => !prev)}
                     >
                         Shuffle
                     </button>
@@ -113,9 +99,24 @@ const MediaLibrary = ({ mediaList, onMediaSelect }) => {
                                     onMediaSelect={(selectedMedia) => {
                                         setCurrentIndex(index);
                                         onMediaSelect(selectedMedia);
-                                        setRepeat(false); // Reset repeat when a new video is selected
+                                        setRepeat(false);
                                     }}
                                 />
+                                <div className="tag-container">
+                                    {media.tags?.length ? (
+                                        media.tags.map((tag, idx) => (
+                                            <span
+                                                key={idx}
+                                                className="tag-badge"
+                                                onClick={() => addTag(tag)} // Fix: Use addTag prop
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="no-tags">No tags available</span>
+                                    )}
+                                </div>
                             </div>
                         ))
                     ) : (
