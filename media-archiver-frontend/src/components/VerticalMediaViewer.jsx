@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const VerticalMediaViewer = ({ media, repeat }) => {
+const VerticalMediaViewer = ({ media, repeat, isDarkMode }) => {
     const videoRef = useRef(null);
 
     useEffect(() => {
@@ -22,9 +22,9 @@ const VerticalMediaViewer = ({ media, repeat }) => {
 
     return (
         <div className="viewer-container">
-            <h2 className="viewer-title">
-            {media.title.length > 100 ? `${media.title.substring(0, 100)}...` : media.title}
-            </h2>
+            <div className={`viewer-title ${isDarkMode ? 'dark-theme' : ''}`}>
+                <h2>{media.title.length > 100 ? `${media.title.substring(0, 100)}...` : media.title} </h2>
+            </div>
             <video
                 ref={videoRef}
                 src={media.media_url}

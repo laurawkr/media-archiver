@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-const MediaStudio = ({ selectedMedia, onMediaSave, onClose }) => {
+const MediaStudio = ({ selectedMedia, onMediaSave, onClose, isDarkMode }) => {
     const [action, setAction] = useState(""); // Track the current action (video/sound/both)
     const [clipState, setClipState] = useState({
         videoStartTime: null,
@@ -124,8 +124,8 @@ const MediaStudio = ({ selectedMedia, onMediaSave, onClose }) => {
     
 
     return (
-        <div className="media-studio">
-            <div className="media-studio-header">
+        <div className={`media-studio ${isDarkMode ? 'dark-theme' : ''}`}>
+            <div className={`media-studio-header ${isDarkMode ? 'dark-theme' : ''}`}>
                 <h2>Media Studio</h2>
                 <button className="close-button" onClick={onClose}>X</button>
             </div>
@@ -191,5 +191,6 @@ const MediaStudio = ({ selectedMedia, onMediaSave, onClose }) => {
 };
 
 export default MediaStudio;
+
 
 
