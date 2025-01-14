@@ -232,13 +232,13 @@ const App = () => {
         </div>
       );
       
-    const renderTabContent = () => {
+      const renderTabContent = () => {
         switch (activeTab) {
             case "Settings":
                 return renderSettings();
             case "DownloadByUsername":
                 return (
-                    <div className="settings-container">
+                    <div className={`settings-container ${isDarkMode ? 'dark-theme' : ''}`}>
                         <h2>Download TikTok Videos</h2>
                         <label>
                             Username:
@@ -247,37 +247,40 @@ const App = () => {
                                 placeholder="Enter TikTok username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                className={isDarkMode ? 'dark-theme' : ''}
                             />
                         </label>
-                        <button onClick={handleDownloadByUsername}>Download</button>
+                        <button onClick={handleDownloadByUsername} className={isDarkMode ? 'dark-theme' : ''}>
+                            Download
+                        </button>
                     </div>
                 );
             case "LocalUpload":
                 return (
-                    <div className="upload-container">
+                    <div className={`upload-container ${isDarkMode ? 'dark-theme' : ''}`}>
                         {isUploading ? (
-                            <div className="progress-bar">
+                            <div className={`progress-bar ${isDarkMode ? 'dark-theme' : ''}`}>
                                 <div
-                                    className="progress-bar-fill"
+                                    className={`progress-bar-fill ${isDarkMode ? 'dark-theme' : ''}`}
                                     style={{ width: `${uploadProgress}%` }}
                                 ></div>
                                 <span>{Math.round(uploadProgress)}%</span>
                             </div>
                         ) : (
-                            <label htmlFor="local-upload" className="local-upload-label">
+                            <label htmlFor="local-upload" className={`local-upload-label ${isDarkMode ? 'dark-theme' : ''}`}>
                                 Select File
                                 <input
                                     id="local-upload"
                                     type="file"
                                     onChange={handleFileUpload}
-                                    className="local-upload-input"
+                                    className={`local-upload-input ${isDarkMode ? 'dark-theme' : ''}`}
                                 />
                             </label>
                         )}
                     </div>
                 );
             case "URLDownload":
-                return <URLInput onSubmit={() => fetchMediaList()} />;
+                return <URLInput onSubmit={() => fetchMediaList()} isDarkMode={isDarkMode} />;
             default:
                 return null;
         }
@@ -330,11 +333,8 @@ const App = () => {
         setEditedMetadata({ ...editedMetadata, [field]: value });
     };
 
-    return (
-        <div className="p-8">
-            <style>
-                {`
-                @media (max-width: 1440px) {
+    const dynamicStyle = `
+    @media (max-width: 1440px) {
                 body {
                     transform: scale(0.90);
                     transform-origin: top left;
@@ -403,25 +403,12 @@ const App = () => {
                     height: 100%;
                 }
             }
-            }
+            
+    `;
 
-                @media (min-width: 1441px) {
-                    body {
-                        transform: scale(1);
-                        transform-origin: top left;
-                        font-family: Arial, sans-serif;
-                        margin: 0;
-                        padding: 0;
-                        background-color: #ffffff;
-                        color: #000;
-                    }
-                    .navigation-bar {
-                        flex-direction: row;
-                        padding: 20px;
-                    }
-                }
-                `}
-            </style>
+    return (
+        <div className="p-8">
+            <style>{dynamicStyle}</style>
             <header className={`page-header ${isDarkMode ? 'dark-theme' : ''}`}>
                 <h1 className="text-4xl font-extrabold mb-6 text-center text-purple-400">Media Archiver</h1>
             </header>

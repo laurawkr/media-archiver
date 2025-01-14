@@ -154,7 +154,7 @@ def update_metadata():
     media_folder = None
 
     # Search for the metadata file in the media folder
-    for source in ["YouTube", "TikTok", "InternetArchive"]:
+    for source in ["YouTube", "TikTok", "InternetArchive", "LocalUpload"]:
         source_folder = os.path.join(MEDIA_FOLDER, source)
         if not os.path.exists(source_folder):
             continue
