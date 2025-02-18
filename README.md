@@ -12,9 +12,12 @@ Media Archiver streamlines media archiving by providing an easy way to organize,
 
 ### Prerequisites
 
-  ```sh
-  npm install npm@latest -g
-  ```
+1.  ```sh
+    npm install npm@latest -g
+    ```
+2. ```sh
+   pip install -r requirements.txt
+   ```
 
 ### Installation
 
