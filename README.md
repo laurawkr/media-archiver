@@ -1,7 +1,7 @@
 # media-archiver
 
 
-Media Archiver streamlines media archiving by providing an easy way to organize, tag, and access locally uploaded media or media downloaded from popular sources. The data storage is steamlined programatically for easy access and increased personalization through features like tagging.
+Media Archiver streamlines the archiving of media by providing an easy way to organize, tag, and access locally uploaded media or media downloaded from popular sources. The data storage provides easy access and increased personalization through features like tagging.
 
 ![image](https://github.com/user-attachments/assets/5b6bdb96-c0ac-455a-ad5c-8c2e21fed9d2)
 
